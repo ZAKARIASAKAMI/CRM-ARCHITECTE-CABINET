@@ -11,6 +11,7 @@ import PlanningPage from "views/admin/planning";
 
 // Auth Imports
 import SignIn from "views/auth/SignIn";
+import SignUp from "views/auth/SignUp";
 
 // Icon Imports
 import {
@@ -22,6 +23,7 @@ import {
   MdFolder,
   MdCalendarToday,
   MdLock,
+  MdPersonAdd,
 } from "react-icons/md";
 
 const routes = [
@@ -80,6 +82,13 @@ const routes = [
     path: "sign-in",
     icon: <MdLock className="h-6 w-6" />,
     component: <SignIn />,
+  },
+  {
+    name: "Créer un compte",
+    layout: "/auth",
+    path: "sign-up",
+    icon: <MdPersonAdd className="h-6 w-6" />,
+    component: <SignUp />,
   },
 ];
 
