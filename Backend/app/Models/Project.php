@@ -93,8 +93,13 @@ class Project extends Model
     public function members()
     {
         return $this->belongsToMany(User::class, 'project_members', 'project_id', 'user_id')
-                    ->withPivot('role', 'assigned_at')
+                    ->withPivot('project_role', 'is_manager', 'assigned_at', 'ended_at')
                     ->withTimestamps();
+    }
+
+    public function statusHistories()
+    {
+        return $this->hasMany(ProjectStatusHistory::class, 'project_id');
     }
 
     // الأحداث والمواعيد المرتبطة بالمشروع

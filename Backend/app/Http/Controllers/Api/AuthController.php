@@ -56,4 +56,43 @@ class AuthController extends Controller
             'message' => 'Déconnexion réussie'
         ]);
     }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        try {
+            // Split name into first and last name
+            $nameParts = explode(' ', trim($request->name), 2);
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $nameParts[1] ?? '';
+
+            $user = User::create([
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $request->email,
+                'password' => $request->password,
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]);
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Compte créé avec succès',
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $user->load('roles.permissions'),
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la création du compte',
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
 }

@@ -23,13 +23,24 @@ class ProjectController extends Controller
     public function store(StoreProjectRequest $request): JsonResponse
     {
         $project = DB::transaction(function () use ($request) {
-            $project = Project::create($request->validated());
+            $payload = $request->validated();
 
-            // تسجيل أول تغيير فـ الـ Status History
+            if (isset($payload['reference'])) {
+                $payload['reference'] = $payload['reference'];
+            }
+
+            if (isset($payload['name'])) {
+                $payload['name'] = $payload['name'];
+            }
+
+            $project = Project::create($payload);
+
             $project->statusHistories()->create([
-                'project_status_id' => $project->project_status_id,
-                'changed_by'        => auth()->id(),
-                'notes'             => 'Création initiale du projet',
+                'old_status_id' => null,
+                'new_status_id' => $project->project_status_id,
+                'changed_by'    => auth()->id(),
+                'comment'       => 'Création initiale du projet',
+                'changed_at'    => now(),
             ]);
 
             return $project;
@@ -52,14 +63,25 @@ class ProjectController extends Controller
     {
         DB::transaction(function () use ($request, $project) {
             $oldStatusId = $project->project_status_id;
-            $project->update($request->validated());
+            $payload = $request->validated();
 
-            // إذا تبدلات الحالة تسجيل التغيير فـ History
+            if (isset($payload['reference'])) {
+                $payload['reference'] = $payload['reference'];
+            }
+
+            if (isset($payload['name'])) {
+                $payload['name'] = $payload['name'];
+            }
+
+            $project->update($payload);
+
             if ($request->has('project_status_id') && $oldStatusId != $request->project_status_id) {
                 $project->statusHistories()->create([
-                    'project_status_id' => $request->project_status_id,
-                    'changed_by'        => auth()->id(),
-                    'notes'             => $request->input('status_note', 'Changement de statut'),
+                    'old_status_id' => $oldStatusId,
+                    'new_status_id' => $request->project_status_id,
+                    'changed_by'    => auth()->id(),
+                    'comment'       => $request->input('status_note', 'Changement de statut'),
+                    'changed_at'    => now(),
                 ]);
             }
         });
