@@ -32,6 +32,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'prospects.view', 'module' => 'prospects'],
             ['name' => 'prospects.create', 'module' => 'prospects'],
             ['name' => 'prospects.edit', 'module' => 'prospects'],
+            ['name' => 'prospects.delete', 'module' => 'prospects'],
             ['name' => 'prospects.convert', 'module' => 'prospects'],
             
             ['name' => 'projects.view', 'module' => 'projects'],
@@ -53,6 +54,12 @@ class RolePermissionSeeder extends Seeder
                 ['name' => $perm['name']],
                 ['module' => $perm['module']]
             );
+        }
+
+        // 3. Attacher toutes les permissions au rôle Administrateur
+        $admin = \App\Models\Role::where('name', 'Administrateur')->first();
+        if ($admin) {
+            $admin->permissions()->sync(\App\Models\Permission::pluck('id'));
         }
     }
 }

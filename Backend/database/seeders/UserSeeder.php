@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
                 'first_name' => 'Admin',
                 'last_name' => 'Cabinet',
                 'password' => Hash::make('password123'),
-                'status' => true,
+                'status' => 'active',
             ]
         );
 

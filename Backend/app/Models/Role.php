@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends Model
 {
@@ -11,15 +12,14 @@ class Role extends Model
          'description',
          'guard_name' // why is this here?
     ];
-public function users()
+public function users(): BelongsToMany
     {
-        return $this->morphedByMany(
-            User::class,
-            'model',
-            config('permission.table_names.model_has_roles'),
-            'role_id',
-            config('permission.column_names.model_morph_key')
-        );
+        return $this->belongsToMany(User::class, 'role_user');
+    }
+
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'permission_role');
     }
 }
 
