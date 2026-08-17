@@ -91,15 +91,15 @@ const Navbar = (props) => {
       <div className="relative flex h-[52px] items-center gap-2 sm:gap-3 rounded-full bg-white/20 dark:bg-navy-800/80 backdrop-blur-md px-3 py-1.5 border border-white/30 dark:border-white/10 shadow-sm">
         {/* Search Bar Container */}
         <div ref={searchRef} className="relative">
-          <div className="flex h-10 w-44 sm:w-60 md:w-72 items-center rounded-full bg-white/40 dark:bg-navy-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-white/10 text-navy-700 dark:text-white px-3 transition-all focus-within:ring-2 focus-within:ring-brand-500 focus-within:bg-white/70 dark:focus-within:bg-navy-800">
-            <FiSearch className="h-4 w-4 shrink-0 text-gray-500 dark:text-white" />
+          <div className="flex h-10 w-44 sm:w-60 md:w-72 items-center rounded-full bg-white/40 dark:bg-[#0b14374d] backdrop-blur-sm border border-gray-200/50 dark:border-[#ffffff1a] text-navy-700 dark:text-white px-3 transition-all focus-within:ring-2 focus-within:ring-brand-500 focus-within:bg-gray-100 dark:focus-within:bg-[#0b14374d]">
+            <FiSearch className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-300" />
             <input
               type="text"
               value={searchValue}
               onChange={handleSearchChange}
               onFocus={() => setIsOpenResults(searchValue.trim().length > 0)}
               placeholder="البحث عن مشروع، زبون..."
-              className="block h-full w-full bg-transparent px-2 text-sm font-medium text-navy-700 outline-none placeholder:text-gray-500 dark:text-white dark:placeholder:text-gray-400"
+              className="navbar-search-input block h-full w-full bg-transparent px-2 text-sm font-medium text-navy-700 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-transparent"
             />
             {searchValue && (
               <button

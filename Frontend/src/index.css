@@ -27,3 +27,9 @@ input.defaultCheckbox::before {
 input:checked.defaultCheckbox::before { 
 	opacity: 1;
 }
+
+/* Dark mode: navbar search placeholder matches #0b14374d background */
+.dark .navbar-search-input::placeholder {
+  color: #0b14374d;
+  opacity: 1;
+}
