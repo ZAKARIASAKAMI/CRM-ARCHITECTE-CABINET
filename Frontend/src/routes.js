@@ -9,6 +9,8 @@ import TasksPage from "views/admin/tasks";
 import DocumentsPage from "views/admin/documents";
 import PlanningPage from "views/admin/planning";
 
+import UsersPage from "views/admin/users";
+
 // Auth Imports
 import SignIn from "views/auth/SignIn";
 import SignUp from "views/auth/SignUp";
@@ -22,6 +24,7 @@ import {
   MdAssignment,
   MdFolder,
   MdCalendarToday,
+  MdManageAccounts,
   MdLock,
   MdPersonAdd,
 } from "react-icons/md";
@@ -75,6 +78,13 @@ const routes = [
     path: "planning",
     icon: <MdCalendarToday className="h-6 w-6" />,
     component: <PlanningPage />,
+  },
+  {
+    name: "Utilisateurs & Rôles",
+    layout: "/admin",
+    path: "users",
+    icon: <MdManageAccounts className="h-6 w-6" />,
+    component: <UsersPage />,
   },
   {
     name: "Connexion",
