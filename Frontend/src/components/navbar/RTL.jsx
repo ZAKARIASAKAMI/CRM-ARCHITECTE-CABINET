@@ -1,19 +1,18 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { FiAlignJustify, FiSearch, FiX, FiArrowLeft } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { RiMoonFill, RiSunFill } from "react-icons/ri";
+import api from "services/api";
 
-const searchDatabase = [
-  { name: "لوحة القيادة (Dashboard)", path: "/admin/default", type: "صفحة", category: "نظرة عامة" },
-  { name: "الزبناء المحتملين - Prospects", path: "/admin/prospects", type: "تجارية", category: "Prospects" },
-  { name: "الزبناء والشركات (ICE, Identifiant Fiscal)", path: "/admin/clients", type: "زبناء", category: "إدارة" },
-  { name: "المشاريع المعمارية (PRJ-2026)", path: "/admin/projects", type: "مشاريع", category: "هندسة معمارية" },
-  { name: "مشروع فيلا أنفا - Villa Anfa", path: "/admin/projects", type: "مشروع", category: "سكني" },
-  { name: "عمارة المعاريف - Immeuble Maarif", path: "/admin/projects", type: "مشروع", category: "تصميم" },
-  { name: "المهام ولوحة كانبان (Tasks & Kanban)", path: "/admin/tasks", type: "مهام", category: "عمليات" },
-  { name: "الوثائق والتصاميم (Documents & Plans)", path: "/admin/documents", type: "وثائق", category: "ملفات" },
-  { name: "الأجندة والمواعيد (Planning)", path: "/admin/planning", type: "مواعيد", category: "أجندة" },
-  { name: "المستخدمين والأدوار (Users & Roles)", path: "/admin/users", type: "إدارة", category: "مستخدمين" },
+const navPages = [
+  { name: "Dashboard", path: "/admin/default", category: "Navigation" },
+  { name: "Prospects", path: "/admin/prospects", category: "Navigation" },
+  { name: "Clients", path: "/admin/clients", category: "Navigation" },
+  { name: "Projets", path: "/admin/projects", category: "Navigation" },
+  { name: "Tâches", path: "/admin/tasks", category: "Navigation" },
+  { name: "Documents", path: "/admin/documents", category: "Navigation" },
+  { name: "Planning", path: "/admin/planning", category: "Navigation" },
+  { name: "Utilisateurs", path: "/admin/users", category: "Navigation" },
 ];
 
 const Navbar = (props) => {
@@ -21,24 +20,74 @@ const Navbar = (props) => {
   const [darkmode, setDarkmode] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [isOpenResults, setIsOpenResults] = useState(false);
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
   const searchRef = useRef(null);
+  const debounceRef = useRef(null);
   const navigate = useNavigate();
 
+  const performSearch = useCallback(async (term) => {
+    if (!term || term.trim().length < 2) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    try {
+      const q = term.trim();
+      const navMatches = navPages.filter((p) =>
+        p.name.toLowerCase().includes(q.toLowerCase())
+      ).map((p) => ({ ...p, type: "page" }));
+
+      const [prospRes, clientRes, projRes] = await Promise.allSettled([
+        api.get("/prospects", { params: { search: q } }),
+        api.get("/clients", { params: { search: q } }),
+        api.get("/projects", { params: { search: q } }),
+      ]);
+
+      const prospectResults = (prospRes.status === "fulfilled" ? (prospRes.value.data.data || []) : []).map((p) => ({
+        name: `${p.first_name} ${p.last_name}`,
+        path: "/admin/prospects",
+        type: "prospect",
+        subtitle: p.company_name || p.email || "",
+      }));
+
+      const clientResults = (clientRes.status === "fulfilled" ? (clientRes.value.data.data || []) : []).map((c) => ({
+        name: c.company_name || `${c.first_name} ${c.last_name}`,
+        path: "/admin/clients",
+        type: "client",
+        subtitle: c.email || c.phone || "",
+      }));
+
+      const projectResults = (projRes.status === "fulfilled" ? (projRes.value.data.data || []) : []).map((p) => ({
+        name: p.name,
+        path: "/admin/projects",
+        type: "project",
+        subtitle: p.reference || p.city || "",
+      }));
+
+      setResults([...navMatches, ...prospectResults, ...clientResults, ...projectResults]);
+    } catch {
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
   const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
-    setIsOpenResults(e.target.value.trim().length > 0);
+    const val = e.target.value;
+    setSearchValue(val);
+    setIsOpenResults(val.trim().length > 0);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => performSearch(val), 350);
   };
 
   const handleClearSearch = () => {
     setSearchValue("");
     setIsOpenResults(false);
+    setResults([]);
+    clearTimeout(debounceRef.current);
   };
-
-  const filteredResults = searchDatabase.filter((item) =>
-    item.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-    item.type.toLowerCase().includes(searchValue.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchValue.toLowerCase())
-  );
 
   const handleSelectResult = (path) => {
     navigate(path);
@@ -99,7 +148,7 @@ const Navbar = (props) => {
               onChange={handleSearchChange}
               onFocus={() => setIsOpenResults(searchValue.trim().length > 0)}
               placeholder="البحث عن مشروع، زبون..."
-              className="navbar-search-input block h-full w-full bg-transparent px-2 text-sm font-medium text-navy-700 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-transparent"
+              className="navbar-search-input block h-full w-full bg-transparent px-2 text-sm font-medium text-navy-700 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-white/70"
             />
             {searchValue && (
               <button
@@ -115,13 +164,12 @@ const Navbar = (props) => {
           {isOpenResults && (
             <div className="absolute top-12 start-0 w-72 sm:w-80 md:w-96 rounded-2xl bg-white/95 dark:bg-navy-800/95 backdrop-blur-xl shadow-2xl border border-gray-100 dark:border-white/10 p-2 z-50 transition-all animate-in fade-in slide-in-from-top-2">
               <div className="px-3 py-2 text-xs font-bold text-gray-400 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
-                <span>نتائج البحث ({filteredResults.length})</span>
-                <span className="text-[10px] text-gray-400">إغلاق</span>
+                <span>{searching ? "Recherche..." : `Résultats (${results.length})`}</span>
               </div>
 
               <div className="mt-1 max-h-64 overflow-y-auto flex flex-col gap-1">
-                {filteredResults.length > 0 ? (
-                  filteredResults.map((item, index) => (
+                {results.length > 0 ? (
+                  results.map((item, index) => (
                     <div
                       key={index}
                       onClick={() => handleSelectResult(item.path)}
@@ -132,7 +180,7 @@ const Navbar = (props) => {
                           {item.name}
                         </span>
                         <span className="text-xs text-gray-400 dark:text-gray-400">
-                          {item.category} • {item.type}
+                          {item.subtitle ? `${item.subtitle} · ` : ""}{item.type}
                         </span>
                       </div>
                       <FiArrowLeft className="h-4 w-4 text-gray-400 group-hover:text-brand-500 dark:group-hover:text-brand-400 group-hover:-translate-x-1 transition-all" />
@@ -140,7 +188,7 @@ const Navbar = (props) => {
                   ))
                 ) : (
                   <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                    لا توجد نتائج لـ "{searchValue}"
+                    Aucun résultat pour "{searchValue}"
                   </div>
                 )}
               </div>

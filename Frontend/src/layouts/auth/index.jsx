@@ -2,7 +2,6 @@ import Footer from "components/footer/FooterAuthDefault";
 import authImg from "assets/img/auth/auth.png";
 import { Link, Routes, Route, Navigate } from "react-router-dom";
 import routes from "routes.js";
-import FixedPlugin from "components/fixedPlugin/FixedPlugin";
 
 export default function Auth() {
   const getRoutes = (routes) => {
@@ -19,12 +18,11 @@ export default function Auth() {
   document.documentElement.dir = "ltr";
   return (
     <div>
-      <div className="relative float-right h-full min-h-screen w-full !bg-white dark:!bg-navy-900">
-        <FixedPlugin />
+      <div className="relative float-right h-full min-h-screen w-full !bg-white">
         <main className={`mx-auto min-h-screen`}>
           <div className="relative flex">
             <div className="mx-auto flex min-h-full w-full flex-col justify-start pt-12 md:max-w-[75%]  lg:max-w-[1013px] lg:px-8 lg:pt-0 xl:min-h-[100vh] xl:max-w-[1383px] xl:px-0 xl:pl-[70px]">
-              <div className="mb-auto flex flex-col pl-5 pr-5 md:pr-0 md:pl-12 lg:max-w-[48%] lg:pl-0 xl:max-w-full">
+              <div className="mb-auto flex flex-col pl-5 pr-5 md:pl-12 md:pr-0 lg:max-w-[48%] lg:pl-0 xl:max-w-full">
                 <Link to="/admin" className="mt-0 w-max lg:pt-10">
                   <div className="mx-auto flex h-fit w-fit items-center hover:cursor-pointer">
                     <svg

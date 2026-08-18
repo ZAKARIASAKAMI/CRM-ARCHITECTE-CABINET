@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { clientsService } from "services/api";
+import React, { useEffect, useRef, useState } from "react";
+import api from "services/api";
 import Card from "components/card";
 import { MdPersonAdd, MdEdit, MdDelete, MdPhone, MdEmail, MdBusiness } from "react-icons/md";
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const debounceRef = useRef(null);
   const [form, setForm] = useState({
     client_type: "individual",
     first_name: "",
@@ -23,10 +25,12 @@ export default function ClientsPage() {
     notes: "",
   });
 
-  const loadClients = async () => {
+  const loadClients = async (searchTerm) => {
     setLoading(true);
     try {
-      const res = await clientsService.getAll();
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
+      const res = await api.get("/clients", { params });
       setClients(res.data.data || res.data || []);
     } catch (e) {
       console.error("Error loading clients", e);
@@ -36,16 +40,20 @@ export default function ClientsPage() {
   };
 
   useEffect(() => {
-    loadClients();
-  }, []);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      loadClients(search);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
-        await clientsService.update(editingId, form);
+        await api.put(`/clients/${editingId}`, form);
       } else {
-        await clientsService.create(form);
+        await api.post("/clients", form);
       }
       setModalOpen(false);
       setEditingId(null);
@@ -63,7 +71,7 @@ export default function ClientsPage() {
         city: "Casablanca",
         notes: "",
       });
-      loadClients();
+      loadClients(search);
     } catch (e) {
       console.error("Error saving client", e);
     }
@@ -91,8 +99,8 @@ export default function ClientsPage() {
   const handleDelete = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce client ?")) {
       try {
-        await clientsService.delete(id);
-        loadClients();
+        await api.delete(`/clients/${id}`);
+        loadClients(search);
       } catch (e) {
         console.error("Error deleting client", e);
       }
@@ -134,6 +142,15 @@ export default function ClientsPage() {
           <MdPersonAdd className="h-5 w-5" />
           Nouveau Client
         </button>
+      </div>
+
+      <div className="w-full">
+        <input
+          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          placeholder="Recherche client..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <Card extra="w-full p-4">

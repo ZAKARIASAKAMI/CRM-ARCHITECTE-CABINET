@@ -80,6 +80,14 @@ class ProspectController extends Controller
 
     public function convert(Request $request, Prospect $prospect): JsonResponse
     {
+        if ($prospect->converted_at) {
+            return response()->json(['message' => 'Ce prospect a déjà été converti en client'], 422);
+        }
+
+        if ($prospect->status && $prospect->status->is_lost) {
+            return response()->json(['message' => 'Impossible de convertir un prospect perdu'], 422);
+        }
+
         $request->validate([
             'client_type' => 'nullable|in:individual,company',
             'company_name' => 'nullable|string|max:190',
@@ -95,8 +103,12 @@ class ProspectController extends Controller
             'project_status_id' => 'nullable|exists:project_statuses,id',
             'reference' => 'nullable|string|max:50',
             'manager_user_id' => 'nullable|exists:users,id',
-            'estimated_budget' => 'nullable|numeric|min:0',
         ]);
+
+        $email = $request->input('email', $prospect->email);
+        if ($email && Client::where('email', $email)->exists()) {
+            return response()->json(['message' => 'Un client avec cet email existe déjà'], 422);
+        }
 
         $client = null;
         $project = null;
@@ -136,7 +148,6 @@ class ProspectController extends Controller
                     'description' => $request->input('project_description', $prospect->notes),
                     'city' => $request->input('project_city', $client->city),
                     'address' => $request->input('project_address', $client->address),
-                    'estimated_budget' => $request->input('estimated_budget', $prospect->estimated_budget),
                     'start_date' => $request->input('start_date'),
                     'expected_end_date' => $request->input('expected_end_date'),
                     'created_by' => auth()->id() ?? $prospect->assigned_user_id,

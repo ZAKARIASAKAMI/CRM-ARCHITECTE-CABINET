@@ -83,7 +83,7 @@ export const prospectsService = {
 };
 
 export const clientsService = {
-  getAll: () => api.get("/clients"),
+  getAll: (params) => api.get("/clients", { params }),
   getOne: (id) => api.get(`/clients/${id}`),
   create: (data) => api.post("/clients", data),
   update: (id, data) => api.put(`/clients/${id}`, data),
@@ -91,7 +91,7 @@ export const clientsService = {
 };
 
 export const projectsService = {
-  getAll: () => api.get("/projects"),
+  getAll: (params) => api.get("/projects", { params }),
   getOne: (id) => api.get(`/projects/${id}`),
   create: (data) => api.post("/projects", data),
   update: (id, data) => api.put(`/projects/${id}`, data),

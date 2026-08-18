@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { projectsService, clientsService, usersService } from "services/api";
+import React, { useEffect, useRef, useState } from "react";
+import api from "services/api";
 import Card from "components/card";
 import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAttachMoney, MdSquareFoot, MdPerson } from "react-icons/md";
 
@@ -10,8 +10,10 @@ export default function ProjectsPage() {
   const [statuses, setStatuses] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const debounceRef = useRef(null);
   const [form, setForm] = useState({
     name: "",
     reference: "",
@@ -28,15 +30,17 @@ export default function ProjectsPage() {
     description: "",
   });
 
-  const loadData = async () => {
+  const loadProjects = async (searchTerm) => {
     setLoading(true);
     try {
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
       const [projRes, clientRes, typeRes, statusRes, userRes] = await Promise.all([
-        projectsService.getAll(),
-        clientsService.getAll(),
-        projectsService.getTypes(),
-        projectsService.getStatuses(),
-        usersService.getList(),
+        api.get("/projects", { params }),
+        api.get("/clients"),
+        api.get("/project-types"),
+        api.get("/project-statuses"),
+        api.get("/users-list"),
       ]);
 
       setProjects(projRes.data.data || projRes.data || []);
@@ -52,8 +56,12 @@ export default function ProjectsPage() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      loadProjects(search);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,13 +75,13 @@ export default function ProjectsPage() {
       };
 
       if (editingId) {
-        await projectsService.update(editingId, payload);
+        await api.put(`/projects/${editingId}`, payload);
       } else {
-        await projectsService.create(payload);
+        await api.post("/projects", payload);
       }
       setModalOpen(false);
       setEditingId(null);
-      loadData();
+      loadProjects(search);
     } catch (e) {
       console.error("Error saving project", e);
     }
@@ -102,8 +110,8 @@ export default function ProjectsPage() {
   const handleDelete = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce projet architectural ?")) {
       try {
-        await projectsService.delete(id);
-        loadData();
+        await api.delete(`/projects/${id}`);
+        loadProjects(search);
       } catch (e) {
         console.error("Error deleting project", e);
       }
@@ -146,6 +154,15 @@ export default function ProjectsPage() {
           <MdAdd className="h-5 w-5" />
           Nouveau Projet
         </button>
+      </div>
+
+      <div className="w-full">
+        <input
+          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          placeholder="Recherche projet..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <Card extra="w-full p-4">

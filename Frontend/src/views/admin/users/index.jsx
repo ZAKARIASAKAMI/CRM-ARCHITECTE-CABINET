@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { usersService } from "services/api";
 import Card from "components/card";
 import {
@@ -11,6 +11,49 @@ import {
   MdCheckCircle,
   MdCancel,
 } from "react-icons/md";
+
+const initialMockUsers = [
+  {
+    id: 1,
+    first_name: "Karim",
+    last_name: "Benjelloun",
+    email: "admin@cabinet-archi.ma",
+    phone: "+212 661 123 456",
+    role: "Administrateur",
+    status: true,
+    last_login_at: "2026-08-17 08:30",
+  },
+  {
+    id: 2,
+    first_name: "Sarah",
+    last_name: "El Amrani",
+    email: "s.amrani@cabinet-archi.ma",
+    phone: "+212 662 987 654",
+    role: "Architecte responsable",
+    status: true,
+    last_login_at: "2026-08-16 14:15",
+  },
+  {
+    id: 3,
+    first_name: "Youssef",
+    last_name: "Tazi",
+    email: "y.tazi@cabinet-archi.ma",
+    phone: "+212 663 555 444",
+    role: "Collaborateur",
+    status: true,
+    last_login_at: "2026-08-15 11:45",
+  },
+  {
+    id: 4,
+    first_name: "Nadia",
+    last_name: "Chraibi",
+    email: "contact@cabinet-archi.ma",
+    phone: "+212 664 222 333",
+    role: "Assistante / Secrétaire",
+    status: true,
+    last_login_at: "2026-08-17 09:00",
+  },
+];
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
@@ -26,51 +69,7 @@ export default function UsersPage() {
     status: true,
   });
 
-  // Mock initial users list based on Cahier des Charges roles if API yields empty array
-  const initialMockUsers = [
-    {
-      id: 1,
-      first_name: "Karim",
-      last_name: "Benjelloun",
-      email: "admin@cabinet-archi.ma",
-      phone: "+212 661 123 456",
-      role: "Administrateur",
-      status: true,
-      last_login_at: "2026-08-17 08:30",
-    },
-    {
-      id: 2,
-      first_name: "Sarah",
-      last_name: "El Amrani",
-      email: "s.amrani@cabinet-archi.ma",
-      phone: "+212 662 987 654",
-      role: "Architecte responsable",
-      status: true,
-      last_login_at: "2026-08-16 14:15",
-    },
-    {
-      id: 3,
-      first_name: "Youssef",
-      last_name: "Tazi",
-      email: "y.tazi@cabinet-archi.ma",
-      phone: "+212 663 555 444",
-      role: "Collaborateur",
-      status: true,
-      last_login_at: "2026-08-15 11:45",
-    },
-    {
-      id: 4,
-      first_name: "Nadia",
-      last_name: "Chraibi",
-      email: "contact@cabinet-archi.ma",
-      phone: "+212 664 222 333",
-      role: "Assistante / Secrétaire",
-      status: true,
-      last_login_at: "2026-08-17 09:00",
-    },
-  ];
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await usersService.getList();
@@ -86,18 +85,16 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [loadUsers]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editingId) {
-      setUsers(
-        users.map((u) => (u.id === editingId ? { ...u, ...form } : u))
-      );
+      setUsers(users.map((u) => (u.id === editingId ? { ...u, ...form } : u)));
     } else {
       const newUser = {
         id: Date.now(),
@@ -132,7 +129,11 @@ export default function UsersPage() {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir désactiver / supprimer cet utilisateur ?")) {
+    if (
+      window.confirm(
+        "Êtes-vous sûr de vouloir désactiver / supprimer cet utilisateur ?"
+      )
+    ) {
       setUsers(users.filter((u) => u.id !== id));
     }
   };
@@ -160,7 +161,8 @@ export default function UsersPage() {
             Gestion des Utilisateurs et Rôles
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Administration des comptes du cabinet, privilèges et permissions d'accès.
+            Administration des comptes du cabinet, privilèges et permissions
+            d'accès.
           </p>
         </div>
         <button
@@ -189,35 +191,35 @@ export default function UsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-white/10 text-xs uppercase font-bold text-gray-500 dark:text-gray-400">
-                  <th className="py-3 px-4">Utilisateur</th>
-                  <th className="py-3 px-4">Contact</th>
-                  <th className="py-3 px-4">Rôle / Privilèges</th>
-                  <th className="py-3 px-4">Statut</th>
-                  <th className="py-3 px-4">Dernière Connexion</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                <tr className="border-b border-gray-200 text-xs font-bold uppercase text-gray-500 dark:border-white/10 dark:text-gray-400">
+                  <th className="px-4 py-3">Utilisateur</th>
+                  <th className="px-4 py-3">Contact</th>
+                  <th className="px-4 py-3">Rôle / Privilèges</th>
+                  <th className="px-4 py-3">Statut</th>
+                  <th className="px-4 py-3">Dernière Connexion</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
                   <tr
                     key={u.id}
-                    className="border-b border-gray-100 dark:border-white/5 hover:bg-gray-50/50 dark:hover:bg-navy-700/50 transition-all text-sm"
+                    className="border-b border-gray-100 text-sm transition-all hover:bg-gray-50/50 dark:border-white/5 dark:hover:bg-navy-700/50"
                   >
-                    <td className="py-3 px-4 font-bold text-navy-700 dark:text-white">
+                    <td className="px-4 py-3 font-bold text-navy-700 dark:text-white">
                       {u.first_name} {u.last_name}
                     </td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-300">
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                       <div className="flex items-center gap-2">
                         <MdEmail className="text-gray-400" /> {u.email}
                       </div>
                       {u.phone && (
-                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                        <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-400">
                           <MdPhone /> {u.phone}
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${getRoleBadge(
                           u.role
@@ -226,7 +228,7 @@ export default function UsersPage() {
                         <MdShield /> {u.role}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="px-4 py-3">
                       {u.status ? (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 dark:text-green-400">
                           <MdCheckCircle /> Actif
@@ -237,10 +239,10 @@ export default function UsersPage() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-xs text-gray-500 dark:text-gray-400">
+                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
                       {u.last_login_at || "Jamais"}
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleEdit(u)}
@@ -268,10 +270,12 @@ export default function UsersPage() {
 
       {/* Modal User Creation/Edit */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="bg-black/50 fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-navy-800 dark:text-white">
-            <h3 className="text-xl font-bold text-navy-700 dark:text-white mb-4">
-              {editingId ? "Modifier l'utilisateur" : "Nouveau Compte Utilisateur"}
+            <h3 className="mb-4 text-xl font-bold text-navy-700 dark:text-white">
+              {editingId
+                ? "Modifier l'utilisateur"
+                : "Nouveau Compte Utilisateur"}
             </h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
@@ -286,7 +290,7 @@ export default function UsersPage() {
                     onChange={(e) =>
                       setForm({ ...form, first_name: e.target.value })
                     }
-                    className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:bg-navy-900 dark:border-white/10"
+                    className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:border-white/10 dark:bg-navy-900"
                   />
                 </div>
                 <div>
@@ -300,7 +304,7 @@ export default function UsersPage() {
                     onChange={(e) =>
                       setForm({ ...form, last_name: e.target.value })
                     }
-                    className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:bg-navy-900 dark:border-white/10"
+                    className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:border-white/10 dark:bg-navy-900"
                   />
                 </div>
               </div>
@@ -314,7 +318,7 @@ export default function UsersPage() {
                   required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:bg-navy-900 dark:border-white/10"
+                  className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:border-white/10 dark:bg-navy-900"
                 />
               </div>
 
@@ -326,7 +330,7 @@ export default function UsersPage() {
                   type="text"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:bg-navy-900 dark:border-white/10"
+                  className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:border-white/10 dark:bg-navy-900"
                 />
               </div>
 
@@ -337,7 +341,7 @@ export default function UsersPage() {
                 <select
                   value={form.role}
                   onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:bg-navy-900 dark:border-white/10"
+                  className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:border-white/10 dark:bg-navy-900"
                 >
                   <option value="Administrateur">
                     Administrateur (Accès complet & Audit)

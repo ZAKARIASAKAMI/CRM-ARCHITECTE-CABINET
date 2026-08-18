@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import api from "services/api";
 
 const defaultForm = {
@@ -26,39 +26,45 @@ export default function ProspectsPage() {
   const [editingId, setEditingId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [convertOpen, setConvertOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedProspect, setSelectedProspect] = useState(null);
   const [conversionData, setConversionData] = useState({
     create_project: true,
     project_name: "",
     project_type_id: "",
     manager_user_id: "",
-    estimated_budget: "",
   });
+  const [converting, setConverting] = useState(false);
+  const [conversionError, setConversionError] = useState("");
+  const debounceRef = useRef(null);
 
-  const fetchData = useCallback(async () => {
+  const loadProspects = async (searchTerm, statusId) => {
     setLoading(true);
     try {
-      const [prospectsRes, statusesRes, sourcesRes] = await Promise.all([
-        api.get("/prospects", {
-          params: { search, status_id: statusFilter || undefined },
-        }),
-        api.get("/prospects-statuses"),
-        api.get("/prospect-sources"),
-      ]);
-
-      setProspects(prospectsRes.data.data || prospectsRes.data || []);
-      setStatuses(statusesRes.data || []);
-      setSources(sourcesRes.data || []);
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
+      if (statusId) params.status_id = statusId;
+      const res = await api.get("/prospects", { params });
+      setProspects(res.data.data || res.data || []);
     } catch (error) {
       console.error("Failed to load prospects", error);
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter]);
+  };
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    api.get("/prospects-statuses").then((r) => setStatuses(r.data || [])).catch(() => {});
+    api.get("/prospect-sources").then((r) => setSources(r.data || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      loadProspects(search, statusFilter);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search, statusFilter]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -80,7 +86,7 @@ export default function ProspectsPage() {
       setForm(defaultForm);
       setEditingId(null);
       setModalOpen(false);
-      fetchData();
+      loadProspects(search, statusFilter);
     } catch (error) {
       console.error("Failed to save prospect", error);
     }
@@ -113,25 +119,47 @@ export default function ProspectsPage() {
         `${prospect.first_name || ""} ${prospect.last_name || ""}`.trim(),
       project_type_id: "",
       manager_user_id: "",
-      estimated_budget: prospect.estimated_budget || "",
     });
+    setConversionError("");
     setConvertOpen(true);
+  };
+
+  const handleDelete = (prospect) => {
+    setSelectedProspect(prospect);
+    setDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedProspect) return;
+    try {
+      await api.delete(`/prospects/${selectedProspect.id}`);
+      setDeleteOpen(false);
+      setSelectedProspect(null);
+      loadProspects(search, statusFilter);
+    } catch (error) {
+      console.error("Failed to delete prospect", error);
+    }
   };
 
   const submitConversion = async () => {
     if (!selectedProspect) return;
 
+    setConverting(true);
+    setConversionError("");
     try {
       await api.post(`/prospects/${selectedProspect.id}/convert`, {
         ...conversionData,
-        estimated_budget: conversionData.estimated_budget
-          ? Number(conversionData.estimated_budget)
-          : null,
       });
       setConvertOpen(false);
-      fetchData();
+      setSelectedProspect(null);
+      setConversionError("");
+      loadProspects(search, statusFilter);
     } catch (error) {
-      console.error("Conversion failed", error);
+      const msg =
+        error.response?.data?.message || "La conversion a échoué. Veuillez réessayer.";
+      setConversionError(msg);
+    } finally {
+      setConverting(false);
     }
   };
 
@@ -166,29 +194,31 @@ export default function ProspectsPage() {
         </button>
       </div>
 
-      <div className="grid gap-4 rounded-2xl bg-white p-4 shadow-md md:grid-cols-3">
+      <div className="space-y-4 rounded-2xl bg-white p-4 shadow-md">
         <input
-          className="rounded-xl border border-gray-200 p-3"
+          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           placeholder="Recherche..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <select
-          className="rounded-xl border border-gray-200 p-3"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="">Tous les statuts</option>
-          {statuses.map((status) => (
-            <option key={status.id} value={status.id}>
-              {status.name}
-            </option>
-          ))}
-        </select>
+        <div className="grid gap-4 md:grid-cols-2">
+          <select
+            className="rounded-xl border border-gray-200 bg-white p-3"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">Tous les statuts</option>
+            {statuses.map((status) => (
+              <option key={status.id} value={status.id}>
+                {status.name}
+              </option>
+            ))}
+          </select>
 
-        <div className="rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm font-medium text-brand-600">
-          Conversion : {totalWon}
+          <div className="rounded-xl border border-gray-200 bg-white p-3 text-sm font-medium text-gray-700">
+            Conversion : {totalWon}
+          </div>
         </div>
       </div>
 
@@ -248,6 +278,12 @@ export default function ProspectsPage() {
                         onClick={() => handleConvert(prospect)}
                       >
                         Convertir
+                      </button>
+                      <button
+                        className="rounded-lg bg-red-500 px-2 py-1 text-sm text-white"
+                        onClick={() => handleDelete(prospect)}
+                      >
+                        Supprimer
                       </button>
                     </div>
                   </td>
@@ -419,17 +455,6 @@ export default function ProspectsPage() {
                   })
                 }
               />
-              <input
-                className="rounded-lg border p-3"
-                placeholder="Budget"
-                value={conversionData.estimated_budget}
-                onChange={(e) =>
-                  setConversionData({
-                    ...conversionData,
-                    estimated_budget: e.target.value,
-                  })
-                }
-              />
               <select
                 className="rounded-lg border p-3"
                 value={conversionData.project_type_id}
@@ -462,17 +487,55 @@ export default function ProspectsPage() {
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
+              {conversionError && (
+                <p className="mr-auto text-sm text-red-500">{conversionError}</p>
+              )}
               <button
                 className="rounded-lg border px-4 py-2"
                 onClick={() => setConvertOpen(false)}
+                disabled={converting}
               >
                 Annuler
               </button>
               <button
-                className="rounded-lg bg-brand-500 px-4 py-2 text-white"
+                className="rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50"
                 onClick={submitConversion}
+                disabled={converting}
               >
-                Confirmer
+                {converting ? "Conversion..." : "Confirmer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteOpen && selectedProspect && (
+        <div className="bg-black/30 fixed inset-0 z-50 flex items-center justify-center">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold">Supprimer le prospect</h3>
+              <button onClick={() => setDeleteOpen(false)}>✕</button>
+            </div>
+            <p className="mb-6 text-gray-600">
+              Voulez-vous vraiment supprimer le prospect{" "}
+              <strong>
+                {selectedProspect.company_name ||
+                  `${selectedProspect.first_name || ""} ${selectedProspect.last_name || ""}`.trim()}
+              </strong>{" "}
+              ? Cette action est irréversible.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                className="rounded-lg border px-4 py-2"
+                onClick={() => setDeleteOpen(false)}
+              >
+                Annuler
+              </button>
+              <button
+                className="rounded-lg bg-red-500 px-4 py-2 text-white"
+                onClick={confirmDelete}
+              >
+                Supprimer
               </button>
             </div>
           </div>

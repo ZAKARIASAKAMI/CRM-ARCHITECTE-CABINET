@@ -23,6 +23,18 @@ class TaskController extends Controller
             $query->where('status_id', $request->status_id);
         }
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('project', function ($pq) use ($search) {
+                        $pq->where('name', 'like', "%{$search}%")
+                            ->orWhere('reference', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         $tasks = $query->get();
 
         return response()->json($tasks);

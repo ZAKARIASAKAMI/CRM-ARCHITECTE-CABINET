@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { tasksService, projectsService, usersService } from "services/api";
+import React, { useEffect, useRef, useState } from "react";
+import api from "services/api";
 import Card from "components/card";
 import { MdAdd, MdEdit, MdDelete, MdSchedule } from "react-icons/md";
 
@@ -9,8 +9,10 @@ export default function TasksPage() {
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const debounceRef = useRef(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -22,14 +24,16 @@ export default function TasksPage() {
     due_date: "",
   });
 
-  const loadTasksData = async () => {
+  const loadTasks = async (searchTerm) => {
     setLoading(true);
     try {
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
       const [tasksRes, statusRes, projRes, userRes] = await Promise.all([
-        tasksService.getAll(),
-        tasksService.getStatuses(),
-        projectsService.getAll(),
-        usersService.getList(),
+        api.get("/tasks", { params }),
+        api.get("/task-statuses"),
+        api.get("/projects"),
+        api.get("/users-list"),
       ]);
 
       setTasks(tasksRes.data || []);
@@ -44,8 +48,12 @@ export default function TasksPage() {
   };
 
   useEffect(() => {
-    loadTasksData();
-  }, []);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      loadTasks(search);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,14 +66,14 @@ export default function TasksPage() {
       };
 
       if (editingId) {
-        await tasksService.update(editingId, payload);
+        await api.put(`/tasks/${editingId}`, payload);
       } else {
-        await tasksService.create(payload);
+        await api.post("/tasks", payload);
       }
 
       setModalOpen(false);
       setEditingId(null);
-      loadTasksData();
+      loadTasks(search);
     } catch (e) {
       console.error("Error saving task", e);
     }
@@ -89,8 +97,8 @@ export default function TasksPage() {
   const handleDelete = async (id) => {
     if (window.confirm("Supprimer cette tâche ?")) {
       try {
-        await tasksService.delete(id);
-        loadTasksData();
+        await api.delete(`/tasks/${id}`);
+        loadTasks(search);
       } catch (e) {
         console.error("Error deleting task", e);
       }
@@ -128,6 +136,15 @@ export default function TasksPage() {
           <MdAdd className="h-5 w-5" />
           Nouvelle Tâche
         </button>
+      </div>
+
+      <div className="w-full">
+        <input
+          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          placeholder="Recherche tâche..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       {/* Kanban Columns */}
