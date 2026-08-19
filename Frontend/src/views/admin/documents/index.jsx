@@ -14,6 +14,7 @@ export default function DocumentsPage() {
     category_id: "",
     description: "",
   });
+  const [file, setFile] = useState(null);
 
   const loadDocs = async () => {
     setLoading(true);
@@ -35,9 +36,16 @@ export default function DocumentsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await documentsService.create(form);
+      const formData = new FormData();
+      formData.append("name", form.name);
+      if (form.folder_id) formData.append("folder_id", form.folder_id);
+      if (form.category_id) formData.append("category_id", form.category_id);
+      if (form.description) formData.append("description", form.description);
+      if (file) formData.append("file", file);
+      await documentsService.create(formData);
       setModalOpen(false);
       setForm({ name: "", folder_id: "", category_id: "", description: "" });
+      setFile(null);
       loadDocs();
     } catch (e) {
       console.error("Error uploading document", e);
@@ -150,6 +158,15 @@ export default function DocumentsPage() {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Fichier</label>
+                <input
+                  type="file"
+                  onChange={(e) => setFile(e.target.files[0] || null)}
+                  className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500 file:px-3 file:py-1 file:text-sm file:font-medium file:text-white"
                 />
               </div>
 

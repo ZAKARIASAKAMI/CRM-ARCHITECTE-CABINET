@@ -66,7 +66,16 @@ class Document extends Model
         return $this->hasMany(DocumentVersion::class, 'document_id');
     }
 
-    // المشاريع المرتبطة بهذا المستند (Polymorphic / Document Links)
+    public function currentVersion()
+    {
+        return $this->hasOne(DocumentVersion::class, 'document_id')->latestOfMany('version_number');
+    }
+
+    public function links()
+    {
+        return $this->hasMany(DocumentLink::class, 'document_id');
+    }
+
     public function projects()
     {
         return $this->morphedByMany(Project::class, 'linkable', 'document_links');

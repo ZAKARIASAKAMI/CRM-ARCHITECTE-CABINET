@@ -61,6 +61,13 @@ class DocumentController extends Controller
         ], 201);
     }
 
+    public function show(Document $document): JsonResponse
+    {
+        return response()->json(
+            $document->load(['folder', 'category', 'uploader', 'currentVersion', 'links', 'versions'])
+        );
+    }
+
     public function destroy(Document $document): JsonResponse
     {
         $document->delete();

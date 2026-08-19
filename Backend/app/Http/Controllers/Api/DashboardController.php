@@ -33,9 +33,36 @@ class DashboardController extends Controller
             $query->where('is_closed', true);
         })->count();
 
+        $totalProjects = Project::count();
+
         $pendingTasks = Task::whereHas('status', function ($query) {
             $query->where('is_closed', false);
         })->count();
+
+        $completedTasks = Task::whereHas('status', function ($query) {
+            $query->where('is_closed', true);
+        })->count();
+
+        $totalTasks = Task::count();
+
+        $projectsInProgress = Project::with(['client', 'status', 'manager'])
+            ->whereHas('status', function ($query) {
+                $query->where('is_closed', false);
+            })
+            ->get()
+            ->map(fn($p) => [
+                'id'                => $p->id,
+                'name'              => $p->name,
+                'reference'         => $p->reference,
+                'progress'          => $p->progress_percentage ?? 0,
+                'status'            => $p->status?->name,
+                'client'            => $p->client ? ($p->client->client_type === 'company' ? $p->client->company_name : $p->client->first_name . ' ' . $p->client->last_name) : null,
+                'manager'           => $p->manager ? $p->manager->first_name . ' ' . $p->manager->last_name : null,
+                'tasks_total'       => $p->tasks()->count(),
+                'tasks_completed'   => $p->tasks()->whereHas('status', fn($q) => $q->where('is_closed', true))->count(),
+                'estimated_budget'  => $p->estimated_budget,
+                'city'              => $p->city,
+            ]);
 
         $upcomingEvents = Event::where('start_at', '>=', now())
             ->orderBy('start_at')
@@ -62,13 +89,17 @@ class DashboardController extends Controller
             ],
             'clients_count' => $totalClients,
             'projects' => [
-                'active' => $activeProjects,
+                'total'     => $totalProjects,
+                'active'    => $activeProjects,
                 'completed' => $completedProjects,
-                'recent' => $recentProjects,
+                'recent'    => $recentProjects,
             ],
             'tasks' => [
-                'pending' => $pendingTasks,
+                'total'     => $totalTasks,
+                'pending'   => $pendingTasks,
+                'completed' => $completedTasks,
             ],
+            'projects_in_progress' => $projectsInProgress,
             'upcoming_events' => $upcomingEvents,
             'recent_prospects' => $recentProspects,
         ]);

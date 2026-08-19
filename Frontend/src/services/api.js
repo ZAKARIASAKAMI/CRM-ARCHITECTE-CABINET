@@ -111,8 +111,16 @@ export const tasksService = {
 
 export const documentsService = {
   getAll: (params) => api.get("/documents", { params }),
-  create: (data) => api.post("/documents", data),
+  create: (formData) => api.post("/documents", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  }),
   delete: (id) => api.delete(`/documents/${id}`),
+};
+
+export const foldersService = {
+  getAll: (params) => api.get("/folders", { params }),
+  create: (data) => api.post("/folders", data),
+  delete: (id) => api.delete(`/folders/${id}`),
 };
 
 export const eventsService = {

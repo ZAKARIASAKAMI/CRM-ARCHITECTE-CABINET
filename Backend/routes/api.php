@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProspectController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\FolderController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\DashboardController;
@@ -52,6 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Documents CRUD
     Route::apiResource('documents', DocumentController::class);
+
+    // Folders CRUD
+    Route::apiResource('folders', FolderController::class)->only(['index', 'store', 'destroy']);
 
     // Events / Planning CRUD
     Route::apiResource('events', EventController::class);

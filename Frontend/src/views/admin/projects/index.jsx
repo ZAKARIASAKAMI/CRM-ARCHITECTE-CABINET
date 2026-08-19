@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import api from "services/api";
 import Card from "components/card";
-import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAttachMoney, MdSquareFoot, MdPerson } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAttachMoney, MdSquareFoot, MdPerson, MdFolder, MdCreateNewFolder } from "react-icons/md";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
@@ -14,6 +14,11 @@ export default function ProjectsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const debounceRef = useRef(null);
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [folderProject, setFolderProject] = useState(null);
+  const [folders, setFolders] = useState([]);
+  const [folderLoading, setFolderLoading] = useState(false);
+  const [folderName, setFolderName] = useState("");
   const [form, setForm] = useState({
     name: "",
     reference: "",
@@ -137,6 +142,47 @@ export default function ProjectsPage() {
     }
   };
 
+  const openFolderModal = async (proj) => {
+    setFolderProject(proj);
+    setFolderModalOpen(true);
+    setFolderLoading(true);
+    try {
+      const res = await api.get("/folders", { params: { project_id: proj.id } });
+      setFolders(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      console.error("Error loading folders", e);
+      setFolders([]);
+    } finally {
+      setFolderLoading(false);
+    }
+  };
+
+  const handleCreateFolder = async () => {
+    if (!folderName.trim() || !folderProject) return;
+    try {
+      const res = await api.post("/folders", {
+        name: folderName.trim(),
+        project_id: folderProject.id,
+      });
+      setFolders((prev) => [res.data.folder, ...prev]);
+      setFolderName("");
+    } catch (e) {
+      console.error("Error creating folder", e);
+      const msg = e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(", ") : (e.response?.data?.message || "Erreur lors de la création du dossier");
+      alert(msg);
+    }
+  };
+
+  const handleDeleteFolder = async (folderId) => {
+    if (!window.confirm("Supprimer ce dossier ?")) return;
+    try {
+      await api.delete(`/folders/${folderId}`);
+      setFolders((prev) => prev.filter((f) => f.id !== folderId));
+    } catch (e) {
+      console.error("Error deleting folder", e);
+    }
+  };
+
   return (
     <div className="mt-5 grid grid-cols-1 gap-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -238,6 +284,13 @@ export default function ProjectsPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => openFolderModal(proj)}
+                          className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-navy-600"
+                          title="Dossiers"
+                        >
+                          <MdFolder className="h-5 w-5" />
+                        </button>
                         <button
                           onClick={() => handleEdit(proj)}
                           className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-navy-600"
@@ -400,6 +453,74 @@ export default function ProjectsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Folder Modal */}
+      {folderModalOpen && folderProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-navy-800">
+            <h3 className="mb-4 text-xl font-bold text-navy-700 dark:text-white">
+              <MdFolder className="mb-1 inline h-5 w-5 text-amber-500" /> Dossiers — {folderProject.name}
+            </h3>
+
+            <div className="mb-4 flex gap-2">
+              <input
+                type="text"
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
+                placeholder="Nouveau dossier..."
+                className="flex-1 rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
+              />
+              <button
+                onClick={handleCreateFolder}
+                className="flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+              >
+                <MdCreateNewFolder className="h-5 w-5" />
+                Ajouter
+              </button>
+            </div>
+
+            <div className="max-h-72 overflow-y-auto">
+              {folderLoading ? (
+                <p className="py-4 text-center text-sm text-gray-400">Chargement...</p>
+              ) : folders.length === 0 ? (
+                <p className="py-4 text-center text-sm text-gray-400">Aucun dossier pour ce projet.</p>
+              ) : (
+                <ul className="divide-y divide-gray-100 dark:divide-navy-700">
+                  {folders.map((f) => (
+                    <li key={f.id} className="flex items-center justify-between py-2.5">
+                      <div className="flex items-center gap-2">
+                        <MdFolder className="h-4 w-4 text-amber-500" />
+                        <span className="text-sm font-medium text-navy-700 dark:text-white">{f.name}</span>
+                        {f.documents?.length > 0 && (
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-navy-600 dark:text-gray-300">
+                            {f.documents.length} fichier{f.documents.length > 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteFolder(f.id)}
+                        className="rounded-lg p-1 text-red-500 hover:bg-red-50 dark:hover:bg-navy-700"
+                      >
+                        <MdDelete className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => { setFolderModalOpen(false); setFolderProject(null); setFolders([]); setFolderName(""); }}
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-navy-600 dark:text-gray-300"
+              >
+                Fermer
+              </button>
+            </div>
           </div>
         </div>
       )}

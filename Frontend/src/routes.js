@@ -27,7 +27,10 @@ import {
   MdManageAccounts,
   MdLock,
   MdPersonAdd,
+  MdLogout,
 } from "react-icons/md";
+
+import { authService } from "services/api";
 
 const routes = [
   {
@@ -87,11 +90,20 @@ const routes = [
     component: <UsersPage />,
   },
   {
+    name: "Déconnexion",
+    layout: "/admin",
+    path: "logout",
+    icon: <MdLogout className="h-6 w-6" />,
+    component: null,
+    onClick: () => authService.logout(),
+  },
+  {
     name: "Connexion",
     layout: "/auth",
     path: "sign-in",
     icon: <MdLock className="h-6 w-6" />,
     component: <SignIn />,
+    hideFromSidebar: true,
   },
   {
     name: "Créer un compte",
@@ -99,6 +111,7 @@ const routes = [
     path: "sign-up",
     icon: <MdPersonAdd className="h-6 w-6" />,
     component: <SignUp />,
+    hideFromSidebar: true,
   },
 ];
 

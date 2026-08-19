@@ -16,12 +16,29 @@ export function SidebarLinks(props) {
   };
 
   const createLinks = (routes) => {
-    return routes.map((route, index) => {
+    return routes
+      .filter((route) => !route.hideFromSidebar)
+      .map((route, index) => {
       if (
         route.layout === "/admin" ||
         route.layout === "/auth" ||
         route.layout === "/rtl"
       ) {
+        if (route.onClick) {
+          return (
+            <div key={index} onClick={route.onClick} className="relative mb-3 flex hover:cursor-pointer">
+              <li className="my-[3px] flex cursor-pointer items-center px-8">
+                <span className="font-medium text-gray-600">
+                  {route.icon ? route.icon : <DashIcon />}
+                </span>
+                <p className="leading-1 ml-4 flex font-medium text-red-500">
+                  {route.name}
+                </p>
+              </li>
+            </div>
+          );
+        }
+
         return (
           <Link key={index} to={route.layout + "/" + route.path}>
             <div className="relative mb-3 flex hover:cursor-pointer">

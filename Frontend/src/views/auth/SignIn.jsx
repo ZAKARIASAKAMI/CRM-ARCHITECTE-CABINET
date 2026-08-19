@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 
 import InputField from "components/fields/InputField";
 import Checkbox from "components/checkbox";
-import { FcGoogle } from "react-icons/fc";
 import api from "services/api";
 import { setAuthSession } from "services/auth";
 
@@ -46,34 +45,53 @@ export default function SignIn() {
   };
 
   return (
-    <div className="mb-16 mt-16 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
-      <div className="mt-[10vh] w-full max-w-full flex-col items-center md:pl-4 lg:pl-0 xl:max-w-[420px]">
-        <h4 className="mb-2.5 text-4xl font-bold text-navy-700 dark:text-white">
-          Sign In
-        </h4>
-        <p className="mb-9 ml-1 text-base text-gray-600">
-          Enter your email and password to sign in!
-        </p>
-        <div className="mb-6 flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-lightPrimary hover:cursor-pointer dark:bg-navy-800">
-          <div className="rounded-full text-xl">
-            <FcGoogle />
+    <div className="w-full">
+      <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] sm:p-10">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm0 2c1.654 0 3 1.346 3 3v3H9V7c0-1.654 1.346-3 3-3zm0 10c1.103 0 2 .897 2 2s-.897 2-2 2-2-.897-2-2 .897-2 2-2z"
+                fill="#422AFB"
+              />
+            </svg>
           </div>
-          <h5 className="text-sm font-medium text-navy-700 dark:text-white">
-            Sign In with Google
-          </h5>
+          <h4 className="text-2xl font-bold text-navy-700">Bienvenue</h4>
+          <p className="mt-1 text-sm text-gray-500">
+            Connectez-vous à votre compte
+          </p>
         </div>
-        <div className="mb-6 flex items-center gap-3">
-          <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
-          <p className="text-base text-gray-600 dark:text-white"> or </p>
-          <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
-        </div>
+
+        {error && (
+          <div className="mb-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8 1C4.134 1 1 4.134 1 8s3.134 7 7 7 7-3.134 7-7-3.134-7-7-7zm-.5 3h1v5h-1V4zm.5 8a.75.75 0 110-1.5.75.75 0 010 1.5z"
+                fill="currentColor"
+              />
+            </svg>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <InputField
             variant="auth"
-            extra="mb-3"
-            label="Email*"
-            placeholder="mail@simmmple.com"
+            extra="mb-4"
+            label="Email"
+            placeholder="votre@email.com"
             id="email"
             type="email"
             value={formData.email}
@@ -82,54 +100,73 @@ export default function SignIn() {
 
           <InputField
             variant="auth"
-            extra="mb-3"
-            label="Password*"
-            placeholder="Min. 8 characters"
+            extra="mb-4"
+            label="Mot de passe"
+            placeholder="Votre mot de passe"
             id="password"
             type="password"
             value={formData.password}
             onChange={handleChange}
           />
 
-          <div className="mb-4 flex items-center justify-between px-2">
+          <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center">
               <Checkbox />
-              <p className="ml-2 text-sm font-medium text-navy-700 dark:text-white">
-                Keep me logged In
+              <p className="ml-2 text-sm font-medium text-navy-700">
+                Rester connecté
               </p>
             </div>
             <a
-              className="text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white"
+              className="text-sm font-medium text-brand-500 transition-colors hover:text-brand-600"
               href=" "
             >
-              Forgot Password?
+              Mot de passe oublié ?
             </a>
           </div>
-
-          {error && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-              {error}
-            </div>
-          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
+            className="linear w-full rounded-xl bg-brand-500 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/30 transition-all duration-200 hover:bg-brand-600 hover:shadow-xl hover:shadow-brand-500/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                Connexion en cours...
+              </span>
+            ) : (
+              "Se connecter"
+            )}
           </button>
         </form>
 
-        <div className="mt-4">
-          <span className="text-sm font-medium text-navy-700 dark:text-gray-600">
-            Not registered yet?
+        <div className="mt-6 text-center">
+          <span className="text-sm text-gray-500">
+            Pas encore de compte ?{" "}
           </span>
           <Link
             to="/auth/sign-up"
-            className="ml-1 text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white"
+            className="text-sm font-semibold text-brand-500 transition-colors hover:text-brand-600"
           >
-            Create an account
+            Créer un compte
           </Link>
         </div>
       </div>
