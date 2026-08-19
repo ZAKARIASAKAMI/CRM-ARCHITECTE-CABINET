@@ -29,23 +29,35 @@ export default function TasksPage() {
     try {
       const params = {};
       if (searchTerm) params.search = searchTerm;
-      const [tasksRes, statusRes, projRes, userRes] = await Promise.allSettled([
+      const [tasksRes, statusRes, projRes] = await Promise.allSettled([
         api.get("/tasks", { params }),
         api.get("/task-statuses"),
         api.get("/projects"),
-        api.get("/users-list"),
       ]);
 
       setTasks(tasksRes.status === "fulfilled" ? tasksRes.value.data : []);
       setStatuses(statusRes.status === "fulfilled" ? statusRes.value.data : []);
       setProjects(projRes.status === "fulfilled" ? (projRes.value.data.data || projRes.value.data || []) : []);
-      setUsers(userRes.status === "fulfilled" ? userRes.value.data : []);
     } catch (e) {
       console.error("Error loading tasks", e);
     } finally {
       setLoading(false);
     }
   };
+
+  const loadUsers = async () => {
+    try {
+      const res = await api.get("/users-list");
+      setUsers(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      console.error("Error loading users for assignee dropdown", e);
+      setUsers([]);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
@@ -78,7 +90,7 @@ export default function TasksPage() {
       loadTasks(search);
     } catch (e) {
       console.error("Error saving task", e);
-      const msg = e.response?.data?.message || e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(", ") : "Erreur lors de l'enregistrement";
+      const msg = e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(", ") : (e.response?.data?.message || "Erreur lors de l'enregistrement");
       alert(msg);
     }
   };
@@ -109,9 +121,25 @@ export default function TasksPage() {
     }
   };
 
+  const openNewTaskModal = () => {
+    setEditingId(null);
+    loadUsers();
+    setForm({
+      title: "",
+      description: "",
+      project_id: projects[0]?.id || "",
+      status_id: statuses[0]?.id || "",
+      assigned_to: "",
+      priority: "normal",
+      estimated_hours: "",
+      due_date: "",
+    });
+    setModalOpen(true);
+  };
+
   return (
     <div className="mt-5 grid grid-cols-1 gap-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-navy-700 dark:text-white">
             Gestion des Tâches
@@ -121,20 +149,7 @@ export default function TasksPage() {
           </p>
         </div>
         <button
-          onClick={() => {
-            setEditingId(null);
-            setForm({
-              title: "",
-              description: "",
-              project_id: projects[0]?.id || "",
-              status_id: statuses[0]?.id || "",
-              assigned_to: users[0]?.id || "",
-              priority: "normal",
-              estimated_hours: "",
-              due_date: "",
-            });
-            setModalOpen(true);
-          }}
+          onClick={openNewTaskModal}
           className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 transition duration-200"
         >
           <MdAdd className="h-5 w-5" />
@@ -188,30 +203,39 @@ export default function TasksPage() {
                       <p className="mt-2 text-xs text-gray-500 line-clamp-2">{task.description}</p>
                     )}
 
-                    <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-navy-700">
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <MdSchedule className="h-4 w-4 text-gray-400" />
-                        <span>{task.due_date ? new Date(task.due_date).toLocaleDateString() : "Pas de date"}</span>
-                      </div>
-                      {task.assignee && (
-                        <div className="flex items-center gap-1 text-xs font-medium text-navy-600 dark:text-white">
-                          <MdPerson className="h-3.5 w-3.5 text-brand-500" />
-                          <span>{task.assignee.first_name} {task.assignee.last_name}</span>
+                    <div className="mt-3 flex flex-col gap-2 border-t border-gray-100 pt-3 dark:border-navy-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <MdSchedule className="h-4 w-4 text-gray-400" />
+                          <span>{task.due_date ? new Date(task.due_date).toLocaleDateString() : "Pas de date"}</span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleEdit(task)}
-                          className="rounded p-1 text-blue-600 hover:bg-blue-50"
-                        >
-                          <MdEdit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(task.id)}
-                          className="rounded p-1 text-red-600 hover:bg-red-50"
-                        >
-                          <MdDelete className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => {
+                              handleEdit(task);
+                              loadUsers();
+                            }}
+                            className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                          >
+                            <MdEdit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(task.id)}
+                            className="rounded p-1 text-red-600 hover:bg-red-50"
+                          >
+                            <MdDelete className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <MdPerson className="h-3.5 w-3.5 text-brand-500" />
+                        {task.assignee ? (
+                          <span className="font-medium text-navy-600 dark:text-white">
+                            {task.assignee.first_name} {task.assignee.last_name}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 italic">Non assigné</span>
+                        )}
                       </div>
                     </div>
                   </Card>
@@ -255,7 +279,7 @@ export default function TasksPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Statut</label>
                   <select
@@ -283,7 +307,7 @@ export default function TasksPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Responsable</label>
                   <select
@@ -296,6 +320,9 @@ export default function TasksPage() {
                       <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
                     ))}
                   </select>
+                  {users.length === 0 && (
+                    <p className="mt-1 text-xs text-amber-500">Aucun utilisateur disponible</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Date d'échéance</label>

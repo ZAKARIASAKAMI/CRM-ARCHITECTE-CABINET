@@ -35,25 +35,37 @@ export default function ProjectsPage() {
     try {
       const params = {};
       if (searchTerm) params.search = searchTerm;
-      const [projRes, clientRes, typeRes, statusRes, userRes] = await Promise.allSettled([
+      const [projRes, clientRes, typeRes, statusRes] = await Promise.allSettled([
         api.get("/projects", { params }),
         api.get("/clients"),
         api.get("/project-types"),
         api.get("/project-statuses"),
-        api.get("/users-list"),
       ]);
 
       setProjects(projRes.status === "fulfilled" ? (projRes.value.data.data || projRes.value.data || []) : []);
       setClients(clientRes.status === "fulfilled" ? (clientRes.value.data.data || clientRes.value.data || []) : []);
       setTypes(typeRes.status === "fulfilled" ? (typeRes.value.data || []) : []);
       setStatuses(statusRes.status === "fulfilled" ? (statusRes.value.data || []) : []);
-      setUsers(userRes.status === "fulfilled" ? (userRes.value.data || []) : []);
     } catch (e) {
       console.error("Error loading projects data", e);
     } finally {
       setLoading(false);
     }
   };
+
+  const loadUsers = async () => {
+    try {
+      const res = await api.get("/users-list");
+      setUsers(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      console.error("Error loading users for architect dropdown", e);
+      setUsers([]);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
@@ -69,6 +81,10 @@ export default function ProjectsPage() {
       const payload = {
         ...form,
         reference: form.reference || `PRJ-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+        client_id: form.client_id ? Number(form.client_id) : null,
+        project_type_id: form.project_type_id ? Number(form.project_type_id) : null,
+        project_status_id: form.project_status_id ? Number(form.project_status_id) : null,
+        manager_user_id: form.manager_user_id ? Number(form.manager_user_id) : null,
         estimated_budget: form.estimated_budget ? Number(form.estimated_budget) : null,
         land_surface: form.land_surface ? Number(form.land_surface) : null,
         estimated_built_surface: form.estimated_built_surface ? Number(form.estimated_built_surface) : null,
@@ -84,11 +100,14 @@ export default function ProjectsPage() {
       loadProjects(search);
     } catch (e) {
       console.error("Error saving project", e);
+      const msg = e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(", ") : (e.response?.data?.message || "Erreur lors de l'enregistrement");
+      alert(msg);
     }
   };
 
   const handleEdit = (proj) => {
     setEditingId(proj.id);
+    loadUsers();
     setForm({
       name: proj.name || "",
       reference: proj.reference || "",
@@ -120,7 +139,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="mt-5 grid grid-cols-1 gap-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-navy-700 dark:text-white">
             Projets Architecturaux
@@ -132,6 +151,7 @@ export default function ProjectsPage() {
         <button
           onClick={() => {
             setEditingId(null);
+            loadUsers();
             setForm({
               name: "",
               reference: `PRJ-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -248,7 +268,7 @@ export default function ProjectsPage() {
               {editingId ? "Modifier le Projet" : "Créer un Projet Architectural"}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Nom du Projet</label>
                   <input
@@ -271,7 +291,7 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Client</label>
                   <select
@@ -301,10 +321,13 @@ export default function ProjectsPage() {
                       </option>
                     ))}
                   </select>
+                  {users.length === 0 && (
+                    <p className="mt-1 text-xs text-amber-500">Aucun utilisateur disponible</p>
+                  )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Type de projet</label>
                   <select
@@ -331,7 +354,7 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Budget (MAD)</label>
                   <input

@@ -20,6 +20,7 @@ class User extends Authenticatable
         'password',
         'avatar_path',
         'status',
+        'is_active',
         'last_login',
         'email_verified_at',
     ];

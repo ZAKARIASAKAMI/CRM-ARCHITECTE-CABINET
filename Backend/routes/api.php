@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RoleController;
 use App\Models\ProspectStatus;
 use App\Models\ProspectSource;
 use App\Models\ProjectStatus;
@@ -45,6 +46,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Users CRUD
     Route::apiResource('users', UserController::class);
 
+    // Roles CRUD
+    Route::apiResource('roles', RoleController::class);
+    Route::get('/permissions', [RoleController::class, 'permissions']);
+
     // Documents CRUD
     Route::apiResource('documents', DocumentController::class);
 
@@ -73,6 +78,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/users-list', function () {
-        return response()->json(User::select('id', 'first_name', 'last_name', 'email', 'avatar', 'status')->get());
+        return response()->json(User::select('id', 'first_name', 'last_name', 'email', 'avatar_path', 'is_active', 'status')->get());
     });
 });
