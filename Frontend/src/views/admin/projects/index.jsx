@@ -35,7 +35,7 @@ export default function ProjectsPage() {
     try {
       const params = {};
       if (searchTerm) params.search = searchTerm;
-      const [projRes, clientRes, typeRes, statusRes, userRes] = await Promise.all([
+      const [projRes, clientRes, typeRes, statusRes, userRes] = await Promise.allSettled([
         api.get("/projects", { params }),
         api.get("/clients"),
         api.get("/project-types"),
@@ -43,11 +43,11 @@ export default function ProjectsPage() {
         api.get("/users-list"),
       ]);
 
-      setProjects(projRes.data.data || projRes.data || []);
-      setClients(clientRes.data.data || clientRes.data || []);
-      setTypes(typeRes.data || []);
-      setStatuses(statusRes.data || []);
-      setUsers(userRes.data || []);
+      setProjects(projRes.status === "fulfilled" ? (projRes.value.data.data || projRes.value.data || []) : []);
+      setClients(clientRes.status === "fulfilled" ? (clientRes.value.data.data || clientRes.value.data || []) : []);
+      setTypes(typeRes.status === "fulfilled" ? (typeRes.value.data || []) : []);
+      setStatuses(statusRes.status === "fulfilled" ? (statusRes.value.data || []) : []);
+      setUsers(userRes.status === "fulfilled" ? (userRes.value.data || []) : []);
     } catch (e) {
       console.error("Error loading projects data", e);
     } finally {

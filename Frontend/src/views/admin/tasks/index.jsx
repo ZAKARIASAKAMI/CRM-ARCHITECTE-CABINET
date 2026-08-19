@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import api from "services/api";
 import Card from "components/card";
-import { MdAdd, MdEdit, MdDelete, MdSchedule } from "react-icons/md";
+import { MdAdd, MdEdit, MdDelete, MdSchedule, MdPerson } from "react-icons/md";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -29,17 +29,17 @@ export default function TasksPage() {
     try {
       const params = {};
       if (searchTerm) params.search = searchTerm;
-      const [tasksRes, statusRes, projRes, userRes] = await Promise.all([
+      const [tasksRes, statusRes, projRes, userRes] = await Promise.allSettled([
         api.get("/tasks", { params }),
         api.get("/task-statuses"),
         api.get("/projects"),
         api.get("/users-list"),
       ]);
 
-      setTasks(tasksRes.data || []);
-      setStatuses(statusRes.data || []);
-      setProjects(projRes.data.data || projRes.data || []);
-      setUsers(userRes.data || []);
+      setTasks(tasksRes.status === "fulfilled" ? tasksRes.value.data : []);
+      setStatuses(statusRes.status === "fulfilled" ? statusRes.value.data : []);
+      setProjects(projRes.status === "fulfilled" ? (projRes.value.data.data || projRes.value.data || []) : []);
+      setUsers(userRes.status === "fulfilled" ? userRes.value.data : []);
     } catch (e) {
       console.error("Error loading tasks", e);
     } finally {
@@ -60,9 +60,11 @@ export default function TasksPage() {
     try {
       const payload = {
         ...form,
-        project_id: form.project_id || null,
-        assigned_to: form.assigned_to || null,
+        project_id: form.project_id ? Number(form.project_id) : null,
+        status_id: form.status_id ? Number(form.status_id) : null,
+        assigned_to: form.assigned_to ? Number(form.assigned_to) : null,
         estimated_hours: form.estimated_hours ? Number(form.estimated_hours) : null,
+        due_date: form.due_date || null,
       };
 
       if (editingId) {
@@ -76,6 +78,8 @@ export default function TasksPage() {
       loadTasks(search);
     } catch (e) {
       console.error("Error saving task", e);
+      const msg = e.response?.data?.message || e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(", ") : "Erreur lors de l'enregistrement";
+      alert(msg);
     }
   };
 
@@ -189,6 +193,12 @@ export default function TasksPage() {
                         <MdSchedule className="h-4 w-4 text-gray-400" />
                         <span>{task.due_date ? new Date(task.due_date).toLocaleDateString() : "Pas de date"}</span>
                       </div>
+                      {task.assignee && (
+                        <div className="flex items-center gap-1 text-xs font-medium text-navy-600 dark:text-white">
+                          <MdPerson className="h-3.5 w-3.5 text-brand-500" />
+                          <span>{task.assignee.first_name} {task.assignee.last_name}</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleEdit(task)}

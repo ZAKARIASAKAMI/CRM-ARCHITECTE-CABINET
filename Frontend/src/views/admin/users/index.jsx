@@ -12,47 +12,11 @@ import {
   MdCancel,
 } from "react-icons/md";
 
-const initialMockUsers = [
-  {
-    id: 1,
-    first_name: "Karim",
-    last_name: "Benjelloun",
-    email: "admin@cabinet-archi.ma",
-    phone: "+212 661 123 456",
-    role: "Administrateur",
-    status: true,
-    last_login_at: "2026-08-17 08:30",
-  },
-  {
-    id: 2,
-    first_name: "Sarah",
-    last_name: "El Amrani",
-    email: "s.amrani@cabinet-archi.ma",
-    phone: "+212 662 987 654",
-    role: "Architecte responsable",
-    status: true,
-    last_login_at: "2026-08-16 14:15",
-  },
-  {
-    id: 3,
-    first_name: "Youssef",
-    last_name: "Tazi",
-    email: "y.tazi@cabinet-archi.ma",
-    phone: "+212 663 555 444",
-    role: "Collaborateur",
-    status: true,
-    last_login_at: "2026-08-15 11:45",
-  },
-  {
-    id: 4,
-    first_name: "Nadia",
-    last_name: "Chraibi",
-    email: "contact@cabinet-archi.ma",
-    phone: "+212 664 222 333",
-    role: "Assistante / Secrétaire",
-    status: true,
-    last_login_at: "2026-08-17 09:00",
-  },
+const ROLES = [
+  "Administrateur",
+  "Architecte responsable",
+  "Collaborateur",
+  "Assistante / Secrétaire",
 ];
 
 export default function UsersPage() {
@@ -65,23 +29,18 @@ export default function UsersPage() {
     last_name: "",
     email: "",
     phone: "",
+    password: "",
     role: "Architecte responsable",
-    status: true,
+    status: "active",
   });
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await usersService.getList();
-      const fetchedData = res.data.data || res.data || [];
-      if (fetchedData.length > 0) {
-        setUsers(fetchedData);
-      } else {
-        setUsers(initialMockUsers);
-      }
+      setUsers(res.data || []);
     } catch (e) {
-      console.warn("Using fallback initial mock users for admin view", e);
-      setUsers(initialMockUsers);
+      console.error("Error loading users", e);
     } finally {
       setLoading(false);
     }
@@ -91,55 +50,61 @@ export default function UsersPage() {
     loadUsers();
   }, [loadUsers]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingId) {
-      setUsers(users.map((u) => (u.id === editingId ? { ...u, ...form } : u)));
-    } else {
-      const newUser = {
-        id: Date.now(),
-        ...form,
-        last_login_at: "Jamais",
-      };
-      setUsers([...users, newUser]);
+    try {
+      const payload = { ...form };
+      if (editingId) {
+        if (!payload.password) delete payload.password;
+        await usersService.update(editingId, payload);
+      } else {
+        await usersService.create(payload);
+      }
+      setModalOpen(false);
+      setEditingId(null);
+      setForm({
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone: "",
+        password: "",
+        role: "Architecte responsable",
+        status: "active",
+      });
+      loadUsers();
+    } catch (e) {
+      console.error("Error saving user", e);
     }
-    setModalOpen(false);
-    setEditingId(null);
-    setForm({
-      first_name: "",
-      last_name: "",
-      email: "",
-      phone: "",
-      role: "Architecte responsable",
-      status: true,
-    });
   };
 
   const handleEdit = (user) => {
     setEditingId(user.id);
+    const userRole = user.roles?.[0]?.name || "Architecte responsable";
     setForm({
       first_name: user.first_name || "",
       last_name: user.last_name || "",
       email: user.email || "",
       phone: user.phone || "",
-      role: user.role || "Architecte responsable",
-      status: user.status ?? true,
+      password: "",
+      role: userRole,
+      status: user.is_active ? "active" : "inactive",
     });
     setModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    if (
-      window.confirm(
-        "Êtes-vous sûr de vouloir désactiver / supprimer cet utilisateur ?"
-      )
-    ) {
-      setUsers(users.filter((u) => u.id !== id));
+  const handleDelete = async (id) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+      try {
+        await usersService.delete(id);
+        loadUsers();
+      } catch (e) {
+        console.error("Error deleting user", e);
+      }
     }
   };
 
-  const getRoleBadge = (role) => {
-    switch (role) {
+  const getRoleBadge = (roleName) => {
+    switch (roleName) {
       case "Administrateur":
         return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
       case "Architecte responsable":
@@ -173,8 +138,9 @@ export default function UsersPage() {
               last_name: "",
               email: "",
               phone: "",
+              password: "",
               role: "Architecte responsable",
-              status: true,
+              status: "active",
             });
             setModalOpen(true);
           }}
@@ -196,7 +162,6 @@ export default function UsersPage() {
                   <th className="px-4 py-3">Contact</th>
                   <th className="px-4 py-3">Rôle / Privilèges</th>
                   <th className="px-4 py-3">Statut</th>
-                  <th className="px-4 py-3">Dernière Connexion</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -222,14 +187,14 @@ export default function UsersPage() {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${getRoleBadge(
-                          u.role
+                          u.roles?.[0]?.name
                         )}`}
                       >
-                        <MdShield /> {u.role}
+                        <MdShield /> {u.roles?.[0]?.name || "-"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {u.status ? (
+                      {u.is_active ? (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 dark:text-green-400">
                           <MdCheckCircle /> Actif
                         </span>
@@ -238,9 +203,6 @@ export default function UsersPage() {
                           <MdCancel /> Inactif
                         </span>
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                      {u.last_login_at || "Jamais"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -254,7 +216,7 @@ export default function UsersPage() {
                         <button
                           onClick={() => handleDelete(u.id)}
                           className="rounded-lg p-2 text-gray-600 hover:bg-red-50 hover:text-red-500 dark:text-gray-400 dark:hover:bg-navy-700 dark:hover:text-red-400"
-                          title="Désactiver / Supprimer"
+                          title="Supprimer"
                         >
                           <MdDelete className="h-4 w-4" />
                         </button>
@@ -268,7 +230,6 @@ export default function UsersPage() {
         )}
       </Card>
 
-      {/* Modal User Creation/Edit */}
       {modalOpen && (
         <div className="bg-black/50 fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-navy-800 dark:text-white">
@@ -336,7 +297,20 @@ export default function UsersPage() {
 
               <div>
                 <label className="text-xs font-bold text-gray-600 dark:text-gray-300">
-                  Rôle & Privilèges (Cahier des charges V1)
+                  {editingId ? "Nouveau mot de passe (laisser vide pour garder)" : "Mot de passe"}
+                </label>
+                <input
+                  type="password"
+                  required={!editingId}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="mt-1 w-full rounded-xl border p-2.5 text-sm dark:border-white/10 dark:bg-navy-900"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-600 dark:text-gray-300">
+                  Rôle & Privilèges
                 </label>
                 <select
                   value={form.role}
@@ -362,9 +336,9 @@ export default function UsersPage() {
                 <input
                   type="checkbox"
                   id="userStatus"
-                  checked={form.status}
+                  checked={form.status === "active"}
                   onChange={(e) =>
-                    setForm({ ...form, status: e.target.checked })
+                    setForm({ ...form, status: e.target.checked ? "active" : "inactive" })
                   }
                   className="h-4 w-4 rounded accent-brand-500"
                 />

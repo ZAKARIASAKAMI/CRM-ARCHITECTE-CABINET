@@ -38,6 +38,6 @@ class TaskStatus extends Model
     // المهام المرتبطة بهذه الحالة
     public function tasks()
     {
-        return $this->hasMany(Task::class, 'task_status_id');
+        return $this->hasMany(Task::class, 'status_id');
     }
 }

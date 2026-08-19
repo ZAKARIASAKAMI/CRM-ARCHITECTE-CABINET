@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\UserController;
 use App\Models\ProspectStatus;
 use App\Models\ProspectSource;
 use App\Models\ProjectStatus;
@@ -40,6 +41,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Tasks CRUD
     Route::apiResource('tasks', TaskController::class);
+
+    // Users CRUD
+    Route::apiResource('users', UserController::class);
 
     // Documents CRUD
     Route::apiResource('documents', DocumentController::class);

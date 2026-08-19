@@ -38,24 +38,7 @@ const Navbar = (props) => {
         </p>
       </div>
 
-      <div className="relative flex h-[52px] items-center gap-3">
-        <div className="flex h-10 w-[450px] items-center rounded-full border border-[#dfe7f5] bg-[white] px-3.5 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] transition-colors sm:w-[500px] md:w-[620px]">
-          <FiSearch className="h-4 w-4 shrink-0 text-[#64748b]" />
-          <input
-            type="text"
-            placeholder="Rechercher un projet, client..."
-            className="bg-transparent h-full w-full border-0 px-2.5 text-sm leading-none text-[#334155] outline-none placeholder:leading-none placeholder:text-[#94a3b8]"
-          />
-        </div>
-
-        <span
-          className="flex cursor-pointer rounded-full p-2 text-xl text-[#475569] transition-all hover:bg-[#eef4ff] xl:hidden"
-          onClick={onOpenSidenav}
-          title="Menu"
-        >
-          <FiAlignJustify className="h-5 w-5 text-[#334155]" />
-        </span>
-      </div>
+    
     </nav>
   );
 };

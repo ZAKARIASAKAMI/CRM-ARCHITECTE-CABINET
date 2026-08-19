@@ -42,17 +42,22 @@ class TaskController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $data = $request->all();
+        array_walk($data, function (&$value) {
+            if ($value === '' || $value === 'null') $value = null;
+        });
+
+        $validated = \Validator::make($data, [
             'title' => 'required|string|max:190',
             'description' => 'nullable|string',
             'project_id' => 'nullable|exists:projects,id',
             'status_id' => 'required|exists:task_statuses,id',
             'assigned_to' => 'nullable|exists:users,id',
-            'priority' => 'nullable|string|in:low,normal,high,urgent',
+            'priority' => 'nullable|string|in:low,normal,medium,high,urgent',
             'start_date' => 'nullable|date',
             'due_date' => 'nullable|date',
             'estimated_hours' => 'nullable|numeric',
-        ]);
+        ])->validate();
 
         $validated['created_by'] = auth()->id() ?? 1;
 
@@ -71,19 +76,24 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task): JsonResponse
     {
-        $validated = $request->validate([
+        $data = $request->all();
+        array_walk($data, function (&$value) {
+            if ($value === '' || $value === 'null') $value = null;
+        });
+
+        $validated = \Validator::make($data, [
             'title' => 'sometimes|required|string|max:190',
             'description' => 'nullable|string',
             'project_id' => 'nullable|exists:projects,id',
             'status_id' => 'sometimes|required|exists:task_statuses,id',
             'assigned_to' => 'nullable|exists:users,id',
-            'priority' => 'nullable|string|in:low,normal,high,urgent',
+            'priority' => 'nullable|string|in:low,normal,medium,high,urgent',
             'start_date' => 'nullable|date',
             'due_date' => 'nullable|date',
             'estimated_hours' => 'nullable|numeric',
             'spent_hours' => 'nullable|numeric',
             'progress_percentage' => 'nullable|integer|min:0|max:100',
-        ]);
+        ])->validate();
 
         if (isset($validated['status_id'])) {
             $status = TaskStatus::find($validated['status_id']);

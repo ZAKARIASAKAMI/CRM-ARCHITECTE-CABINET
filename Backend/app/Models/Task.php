@@ -85,4 +85,23 @@ class Task extends Model
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
+
+    // أعضاء فريق المهمة (جدول وسيط task_members)
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'task_members', 'task_id', 'user_id')
+                    ->withTimestamps();
+    }
+
+    // تعليقات المهمة
+    public function comments()
+    {
+        return $this->hasMany(TaskComment::class, 'task_id');
+    }
+
+    // عناصر قائمة المراجعة (Checklist)
+    public function checklistItems()
+    {
+        return $this->hasMany(TaskChecklistItem::class, 'task_id');
+    }
 }

@@ -27,6 +27,7 @@ return new class extends Migration
             $table->decimal('longitude',10,7)->nullable();
             $table->decimal('land_surface',12,2)->nullable();
             $table->decimal('estimated_built_surface',12,2)->nullable();
+            $table->decimal('estimated_budget',12,2)->nullable();
             $table->date('start_date')->nullable();
             $table->date('expected_end_date')->nullable();
             $table->date('actual_end_date')->nullable();

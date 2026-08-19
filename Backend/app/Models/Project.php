@@ -108,6 +108,12 @@ class Project extends Model
         return $this->hasMany(Event::class, 'project_id');
     }
 
+    // مهام المشروع
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'project_id');
+    }
+
     // المستندات والرسومات الهندسية المرتبطة بالمشروع
     public function documents()
     {
