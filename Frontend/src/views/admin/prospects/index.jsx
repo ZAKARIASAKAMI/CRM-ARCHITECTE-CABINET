@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import api from "services/api";
+import { getStoredUser } from "services/auth";
 
 const defaultForm = {
   first_name: "",
@@ -16,6 +17,8 @@ const defaultForm = {
 };
 
 export default function ProspectsPage() {
+  const user = getStoredUser();
+  const isSecretary = user?.roles?.[0]?.name === "Secretary";
   const [prospects, setProspects] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [sources, setSources] = useState([]);
@@ -290,12 +293,14 @@ export default function ProspectsPage() {
                       >
                         Convertir
                       </button>
+                      {!isSecretary && (
                       <button
                         className="rounded-lg bg-red-500 px-2 py-1 text-sm text-white"
                         onClick={() => handleDelete(prospect)}
                       >
                         Supprimer
                       </button>
+                      )}
                     </div>
                   </td>
                 </tr>

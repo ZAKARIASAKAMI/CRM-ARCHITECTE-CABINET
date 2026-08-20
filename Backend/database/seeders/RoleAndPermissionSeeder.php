@@ -51,19 +51,26 @@ class RoleAndPermissionSeeder extends Seeder
             ],
             'projects' => [
                 'projects.view',
+                'projects.view_assigned',
                 'projects.create',
                 'projects.edit',
                 'projects.delete',
             ],
             'tasks' => [
                 'tasks.view',
+                'tasks.view_assigned',
                 'tasks.create',
                 'tasks.edit',
                 'tasks.delete',
+                'tasks.update_status',
+                'tasks.update_progress',
+                'tasks.log_time',
+                'tasks.check_items',
             ],
             'documents' => [
                 'documents.view',
                 'documents.upload',
+                'documents.edit',
                 'documents.delete',
             ],
             'events' => [
@@ -94,32 +101,37 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         // 4. Create the 4 roles
+
+        // --- Administrator: Global full access (*) ---
         $admin = Role::firstOrCreate(
-            ['name' => 'Administrateur', 'guard_name' => 'web'],
-            ['description' => 'Accès complet: utilisateurs, paramètres, rôles, permissions et journaux.']
+            ['name' => 'Administrator', 'guard_name' => 'web'],
+            ['description' => 'Global full access to all modules, users, settings, and system logs.']
         );
 
+        // --- Architect: Business & project scope ---
         $architect = Role::firstOrCreate(
-            ['name' => 'Architecte responsable', 'guard_name' => 'web'],
-            ['description' => 'Gestion des clients, projets, équipes, tâches, documents et planning.']
+            ['name' => 'Architect', 'guard_name' => 'web'],
+            ['description' => 'CRUD on projects, tasks, schedules, teams, documents, and clients.']
         );
 
-        $assistant = Role::firstOrCreate(
-            ['name' => 'Assistante', 'guard_name' => 'web'],
-            ['description' => 'Gestion des prospects, clients, rendez-vous, documents administratifs et relances.']
-        );
-
+        // --- Collaborator: Restricted to assigned records only ---
         $collaborator = Role::firstOrCreate(
-            ['name' => 'Collaborateur', 'guard_name' => 'web'],
-            ['description' => 'Consultation des projets affectés, mise à jour des tâches, commentaires et documents.']
+            ['name' => 'Collaborator', 'guard_name' => 'web'],
+            ['description' => 'View assigned projects and tasks only. Upload documents and comment on own records.']
+        );
+
+        // --- Secretary: CRM and administrative scope ---
+        $secretary = Role::firstOrCreate(
+            ['name' => 'Secretary', 'guard_name' => 'web'],
+            ['description' => 'Manage prospects, clients, appointments, reminders, and administrative documents.']
         );
 
         // 5. Assign permissions to each role
 
-        // --- Administrateur: FULL ACCESS ---
+        // --- Administrator: FULL ACCESS ---
         $admin->syncPermissions(Permission::all());
 
-        // --- Architecte responsable ---
+        // --- Architect: CRUD on projects, tasks, schedules, teams, documents, clients ---
         $architect->syncPermissions([
             // Clients
             'clients.view',
@@ -128,17 +140,24 @@ class RoleAndPermissionSeeder extends Seeder
             'clients.delete',
             // Projects
             'projects.view',
+            'projects.view_assigned',
             'projects.create',
             'projects.edit',
             'projects.delete',
             // Tasks
             'tasks.view',
+            'tasks.view_assigned',
             'tasks.create',
             'tasks.edit',
             'tasks.delete',
+            'tasks.update_status',
+            'tasks.update_progress',
+            'tasks.log_time',
+            'tasks.check_items',
             // Documents
             'documents.view',
             'documents.upload',
+            'documents.edit',
             'documents.delete',
             // Events / Planning
             'events.view',
@@ -152,14 +171,32 @@ class RoleAndPermissionSeeder extends Seeder
             'comments.delete',
         ]);
 
-        // --- Assistante / Secrétaire ---
-        $assistant->syncPermissions([
-            // Prospects
+        // --- Collaborator: Assigned records only (policy restricts scope) ---
+        $collaborator->syncPermissions([
+            // Projects (view assigned only)
+            'projects.view_assigned',
+            // Tasks (view assigned + granular actions)
+            'tasks.view_assigned',
+            'tasks.update_status',
+            'tasks.update_progress',
+            'tasks.log_time',
+            'tasks.check_items',
+            // Documents (upload for assigned tasks)
+            'documents.view',
+            'documents.upload',
+            // Comments
+            'comments.view',
+            'comments.create',
+        ]);
+
+        // --- Secretary: CRM + Administrative scope ---
+        $secretary->syncPermissions([
+            // Prospects (no delete)
             'prospects.view',
             'prospects.create',
             'prospects.edit',
             'prospects.convert',
-            // Clients
+            // Clients (no delete)
             'clients.view',
             'clients.create',
             'clients.edit',
@@ -168,28 +205,13 @@ class RoleAndPermissionSeeder extends Seeder
             'events.create',
             'events.edit',
             'events.delete',
-            // Documents (upload + view only, no delete)
+            // Documents (view + upload only, no delete)
             'documents.view',
             'documents.upload',
             // Comments
             'comments.view',
             'comments.create',
             'comments.edit',
-        ]);
-
-        // --- Collaborateur ---
-        $collaborator->syncPermissions([
-            // Projects (view only — policy restricts to assigned projects)
-            'projects.view',
-            // Tasks (view + edit — policy restricts to assigned tasks)
-            'tasks.view',
-            'tasks.edit',
-            // Documents (view + upload — policy restricts to project membership)
-            'documents.view',
-            'documents.upload',
-            // Comments
-            'comments.view',
-            'comments.create',
         ]);
     }
 }

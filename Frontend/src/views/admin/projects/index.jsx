@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import api from "services/api";
 import Card from "components/card";
+import { getStoredUser } from "services/auth";
 import { MdAdd, MdEdit, MdDelete, MdLocationOn, MdAttachMoney, MdSquareFoot, MdPerson, MdFolder, MdCreateNewFolder } from "react-icons/md";
 
 export default function ProjectsPage() {
@@ -36,6 +37,10 @@ export default function ProjectsPage() {
   });
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const currentUser = getStoredUser();
+  const isCollaborator = currentUser?.roles?.[0]?.name === "Collaborator";
+  const canEdit = !isCollaborator;
 
   const loadProjects = async (searchTerm) => {
     setLoading(true);
@@ -202,6 +207,7 @@ export default function ProjectsPage() {
             Suivi des projets, architectes responsables et progressions
           </p>
         </div>
+        {!isCollaborator && (
         <button
           onClick={() => {
             setEditingId(null);
@@ -228,6 +234,7 @@ export default function ProjectsPage() {
           <MdAdd className="h-5 w-5" />
           Nouveau Projet
         </button>
+        )}
       </div>
 
       <div className="w-full">
@@ -291,6 +298,7 @@ export default function ProjectsPage() {
                       {proj.city ? <div><MdLocationOn className="inline text-red-500" /> {proj.city}</div> : null}
                     </td>
                     <td className="px-4 py-3 text-right">
+                      {canEdit && (
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => openFolderModal(proj)}
@@ -312,6 +320,7 @@ export default function ProjectsPage() {
                           <MdDelete className="h-5 w-5" />
                         </button>
                       </div>
+                      )}
                     </td>
                   </tr>
                 ))}

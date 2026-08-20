@@ -3,7 +3,17 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "components/navbar";
 import Sidebar from "components/sidebar";
 import Footer from "components/footer/Footer";
-import routes from "routes.js";
+import { allRoutes } from "routes.js";
+import { getStoredUser } from "services/auth";
+
+const user = getStoredUser();
+const userRole = user?.roles?.[0]?.name || "";
+
+const routes = allRoutes.filter((r) => {
+  if (r.hideFromSidebar || r.path === "logout") return false;
+  if (!r.roles) return true;
+  return r.roles.includes(userRole);
+});
 
 export default function Admin(props) {
   const { ...rest } = props;

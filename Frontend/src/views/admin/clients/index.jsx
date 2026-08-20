@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import api from "services/api";
+import { getStoredUser } from "services/auth";
 import Card from "components/card";
 import { MdPersonAdd, MdEdit, MdDelete, MdPhone, MdEmail, MdBusiness } from "react-icons/md";
 
 export default function ClientsPage() {
+  const user = getStoredUser();
+  const isSecretary = user?.roles?.[0]?.name === "Secretary";
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -221,12 +224,14 @@ export default function ClientsPage() {
                         >
                           <MdEdit className="h-5 w-5" />
                         </button>
+                        {!isSecretary && (
                         <button
                           onClick={() => handleDelete(client.id)}
                           className="rounded-lg p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-navy-600"
                         >
                           <MdDelete className="h-5 w-5" />
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

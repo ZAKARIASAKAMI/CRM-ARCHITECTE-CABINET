@@ -71,6 +71,10 @@ class ProspectController extends Controller
 
     public function destroy(Prospect $prospect): JsonResponse
     {
+        if (!auth()->user()->hasPermissionTo('prospects.delete')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
         $prospect->delete();
 
         return response()->json([

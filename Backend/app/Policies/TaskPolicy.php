@@ -10,23 +10,20 @@ class TaskPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Admin & Architecte: full access to all tasks.
-     * Collaborateur: can view/update only tasks assigned to them or where they are a member.
-     */
     public function viewAny(User $user): bool
     {
+        // Administrator, Architect: full view
+        // Collaborator: view assigned tasks only (filtered in controller)
         return true;
     }
 
     public function view(User $user, Task $task): bool
     {
-        if ($user->hasAnyRole(['Administrateur', 'Architecte responsable'])) {
+        if ($user->hasAnyRole(['Administrator', 'Architect'])) {
             return true;
         }
 
-        // Collaborateur: only assigned tasks or tasks where they are a member
-        if ($user->hasRole('Collaborateur')) {
+        if ($user->hasRole('Collaborator')) {
             return $task->assigned_to === $user->id
                 || $task->members()->where('user_id', $user->id)->exists();
         }
@@ -36,26 +33,21 @@ class TaskPolicy
 
     public function create(User $user): bool
     {
-        if ($user->hasAnyRole(['Administrateur', 'Architecte responsable'])) {
+        if ($user->hasAnyRole(['Administrator', 'Architect'])) {
             return true;
         }
 
-        // Collaborateur: can create tasks only if they have the permission
-        // (policy is a secondary gate after permission check)
-        return $user->hasPermissionTo('tasks.create');
+        // Collaborator: cannot create tasks
+        return false;
     }
 
-    /**
-     * Admin & Architect: can update any task.
-     * Collaborateur: can only update tasks assigned to them or where they are a member.
-     */
     public function update(User $user, Task $task): bool
     {
-        if ($user->hasAnyRole(['Administrateur', 'Architecte responsable'])) {
+        if ($user->hasAnyRole(['Administrator', 'Architect'])) {
             return true;
         }
 
-        if ($user->hasRole('Collaborateur')) {
+        if ($user->hasRole('Collaborator')) {
             return $task->assigned_to === $user->id
                 || $task->members()->where('user_id', $user->id)->exists();
         }
@@ -65,6 +57,6 @@ class TaskPolicy
 
     public function delete(User $user, Task $task): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Architecte responsable']);
+        return $user->hasAnyRole(['Administrator', 'Architect']);
     }
 }

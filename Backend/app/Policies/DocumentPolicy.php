@@ -10,10 +10,6 @@ class DocumentPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * View access: Admin, Architecte, Assistante, and Collaborateur
-     * (Collaborateur is restricted by controller/query scope to project membership).
-     */
     public function viewAny(User $user): bool
     {
         return true;
@@ -21,12 +17,12 @@ class DocumentPolicy
 
     public function view(User $user, Document $document): bool
     {
-        if ($user->hasAnyRole(['Administrateur', 'Architecte responsable', 'Assistante'])) {
+        if ($user->hasAnyRole(['Administrator', 'Architect', 'Secretary'])) {
             return true;
         }
 
-        // Collaborateur: only documents linked to projects they are members of
-        if ($user->hasRole('Collaborateur')) {
+        // Collaborator: only documents linked to projects they are members of
+        if ($user->hasRole('Collaborator')) {
             return $document->projects()
                 ->whereHas('members', fn ($q) => $q->where('user_id', $user->id))
                 ->exists();
@@ -35,33 +31,22 @@ class DocumentPolicy
         return false;
     }
 
-    /**
-     * Upload permission: Admin, Architecte, Assistante have full upload.
-     * Collaborateur can upload only to projects they are members of.
-     */
     public function create(User $user): bool
     {
-        if ($user->hasAnyRole(['Administrateur', 'Architecte responsable', 'Assistante'])) {
+        if ($user->hasAnyRole(['Administrator', 'Architect', 'Secretary'])) {
             return true;
         }
 
-        return $user->hasRole('Collaborateur');
+        return $user->hasRole('Collaborator');
     }
 
-    /**
-     * Update: Admin and Architecte only.
-     */
     public function update(User $user, Document $document): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Architecte responsable']);
+        return $user->hasAnyRole(['Administrator', 'Architect']);
     }
 
-    /**
-     * Delete: Admin and Architecte only.
-     * Collaborateur and Assistante cannot delete documents.
-     */
     public function delete(User $user, Document $document): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Architecte responsable']);
+        return $user->hasAnyRole(['Administrator', 'Architect']);
     }
 }

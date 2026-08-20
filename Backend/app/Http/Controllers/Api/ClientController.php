@@ -61,6 +61,10 @@ class ClientController extends Controller
 
     public function destroy(Client $client): JsonResponse
     {
+        if (!auth()->user()->hasPermissionTo('clients.delete')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
         $client->delete();
 
         return response()->json([

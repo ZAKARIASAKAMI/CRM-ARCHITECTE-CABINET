@@ -32,13 +32,14 @@ import {
 
 import { authService } from "services/api";
 
-const routes = [
+const allRoutes = [
   {
     name: "Tableau de Bord",
     layout: "/admin",
     path: "default",
     icon: <MdDashboard className="h-6 w-6" />,
     component: <MainDashboard />,
+    roles: ["Administrator", "Architect", "Collaborator", "Secretary"],
   },
   {
     name: "Prospects",
@@ -46,6 +47,7 @@ const routes = [
     path: "prospects",
     icon: <MdPeople className="h-6 w-6" />,
     component: <ProspectsPage />,
+    roles: ["Administrator", "Secretary"],
   },
   {
     name: "Clients",
@@ -53,6 +55,7 @@ const routes = [
     path: "clients",
     icon: <MdBusinessCenter className="h-6 w-6" />,
     component: <ClientsPage />,
+    roles: ["Administrator", "Secretary", "Architect"],
   },
   {
     name: "Projets",
@@ -60,6 +63,7 @@ const routes = [
     path: "projects",
     icon: <MdArchitecture className="h-6 w-6" />,
     component: <ProjectsPage />,
+    roles: ["Administrator", "Architect", "Collaborator"],
   },
   {
     name: "Tâches",
@@ -67,6 +71,7 @@ const routes = [
     path: "tasks",
     icon: <MdAssignment className="h-6 w-6" />,
     component: <TasksPage />,
+    roles: ["Administrator", "Architect", "Collaborator"],
   },
   {
     name: "Documents",
@@ -74,6 +79,7 @@ const routes = [
     path: "documents",
     icon: <MdFolder className="h-6 w-6" />,
     component: <DocumentsPage />,
+    roles: ["Administrator", "Architect", "Collaborator", "Secretary"],
   },
   {
     name: "Planning",
@@ -81,6 +87,7 @@ const routes = [
     path: "planning",
     icon: <MdCalendarToday className="h-6 w-6" />,
     component: <PlanningPage />,
+    roles: ["Administrator", "Architect", "Secretary"],
   },
   {
     name: "Utilisateurs & Rôles",
@@ -88,6 +95,7 @@ const routes = [
     path: "users",
     icon: <MdManageAccounts className="h-6 w-6" />,
     component: <UsersPage />,
+    roles: ["Administrator"],
   },
   {
     name: "Déconnexion",
@@ -115,4 +123,5 @@ const routes = [
   },
 ];
 
-export default routes;
+export { allRoutes };
+export default allRoutes;

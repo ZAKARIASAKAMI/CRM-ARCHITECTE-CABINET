@@ -10,40 +10,33 @@ class ProspectPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Only Administrateur and Assistante can manage prospects.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Secretary']);
     }
 
     public function view(User $user, Prospect $prospect): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Secretary']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Secretary']);
     }
 
     public function update(User $user, Prospect $prospect): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Secretary']);
     }
 
     public function delete(User $user, Prospect $prospect): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Secretary']);
     }
 
-    /**
-     * Convert a prospect into a client (and optionally a project).
-     * Only Admin and Assistante.
-     */
     public function convert(User $user, Prospect $prospect): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Secretary']);
     }
 }

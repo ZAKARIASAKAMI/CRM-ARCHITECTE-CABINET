@@ -11,9 +11,17 @@ class EventController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $events = Event::with(['project', 'client', 'creator', 'participants'])
-            ->orderBy('start_at')
-            ->get();
+        $query = Event::with(['project', 'client', 'creator', 'participants'])
+            ->orderBy('start_at');
+
+        // Collaborator: only events on projects they are members of
+        if ($request->user()->hasRole('Collaborator')) {
+            $query->whereHas('project', function ($q) use ($request) {
+                $q->whereHas('members', fn ($mq) => $mq->where('user_id', $request->user()->id));
+            });
+        }
+
+        $events = $query->get();
 
         return response()->json($events);
     }

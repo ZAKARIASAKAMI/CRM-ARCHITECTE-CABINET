@@ -99,6 +99,12 @@ class Task extends Model
         return $this->hasMany(TaskComment::class, 'task_id');
     }
 
+    // المرفقات
+    public function attachments()
+    {
+        return $this->hasMany(TaskAttachment::class, 'task_id');
+    }
+
     // عناصر قائمة المراجعة (Checklist)
     public function checklistItems()
     {

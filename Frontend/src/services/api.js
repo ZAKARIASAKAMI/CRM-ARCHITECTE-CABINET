@@ -114,7 +114,9 @@ export const documentsService = {
   create: (formData) => api.post("/documents", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   }),
+  update: (id, data) => api.put(`/documents/${id}`, data),
   delete: (id) => api.delete(`/documents/${id}`),
+  download: (id) => api.get(`/documents/${id}/download`, { responseType: "blob" }),
 };
 
 export const foldersService = {

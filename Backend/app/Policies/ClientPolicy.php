@@ -10,32 +10,28 @@ class ClientPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Administrateur, Architecte responsable, and Assistante can manage clients.
-     * Collaborateur cannot access clients at all.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Architecte responsable', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Architect', 'Secretary']);
     }
 
     public function view(User $user, Client $client): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Architecte responsable', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Architect', 'Secretary']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Architecte responsable', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Architect', 'Secretary']);
     }
 
     public function update(User $user, Client $client): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Architecte responsable', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Architect', 'Secretary']);
     }
 
     public function delete(User $user, Client $client): bool
     {
-        return $user->hasAnyRole(['Administrateur', 'Architecte responsable', 'Assistante']);
+        return $user->hasAnyRole(['Administrator', 'Architect', 'Secretary']);
     }
 }

@@ -8,12 +8,22 @@ use App\Models\DocumentCategory;
 use App\Models\Folder;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
         $query = Document::with(['folder', 'category', 'uploader', 'currentVersion', 'links']);
+
+        // Collaborator: only documents in folders belonging to projects they are members of
+        if ($request->user()->hasRole('Collaborator')) {
+            $query->whereHas('folder', function ($fq) use ($request) {
+                $fq->whereHas('project', function ($pq) use ($request) {
+                    $pq->whereHas('members', fn ($mq) => $mq->where('user_id', $request->user()->id));
+                });
+            });
+        }
 
         if ($request->has('folder_id')) {
             $query->where('folder_id', $request->folder_id);
@@ -24,7 +34,14 @@ class DocumentController extends Controller
         }
 
         $documents = $query->latest()->get();
-        $folders = Folder::with('project')->latest()->get();
+
+        $folderQuery = Folder::with('project')->latest();
+        if ($request->user()->hasRole('Collaborator')) {
+            $folderQuery->whereHas('project', function ($pq) use ($request) {
+                $pq->whereHas('members', fn ($mq) => $mq->where('user_id', $request->user()->id));
+            });
+        }
+        $folders = $folderQuery->get();
         $categories = DocumentCategory::where('is_active', true)->orderBy('sort_order')->get();
 
         return response()->json([
@@ -68,10 +85,47 @@ class DocumentController extends Controller
         );
     }
 
+    public function update(Request $request, Document $document): JsonResponse
+    {
+        if (!auth()->user()->hasPermissionTo('documents.edit')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:190',
+            'folder_id' => 'sometimes|nullable|exists:folders,id',
+            'category_id' => 'sometimes|nullable|exists:document_categories,id',
+            'description' => 'sometimes|nullable|string',
+        ]);
+
+        $document->update($validated);
+
+        return response()->json([
+            'message' => 'Document modifié avec succès',
+            'document' => $document->load(['folder', 'category', 'uploader']),
+        ]);
+    }
+
     public function destroy(Document $document): JsonResponse
     {
+        if (!auth()->user()->hasPermissionTo('documents.delete')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
         $document->delete();
 
         return response()->json(['message' => 'Document supprimé avec succès']);
+    }
+
+    public function download(Document $document)
+    {
+        $disk = $document->storage_disk ?? 'local';
+        $path = $document->storage_path;
+
+        if (!$path || !Storage::disk($disk)->exists($path)) {
+            return response()->json(['message' => 'Fichier introuvable'], 404);
+        }
+
+        return Storage::disk($disk)->download($path, $document->original_name ?? $document->name);
     }
 }

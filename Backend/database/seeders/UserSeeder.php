@@ -11,10 +11,10 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminRole = Role::findByName('Administrateur', 'web');
-        $architectRole = Role::findByName('Architecte responsable', 'web');
-        $assistantRole = Role::findByName('Assistante', 'web');
-        $collaboratorRole = Role::findByName('Collaborateur', 'web');
+        $adminRole = Role::findByName('Administrator', 'web');
+        $architectRole = Role::findByName('Architect', 'web');
+        $collaboratorRole = Role::findByName('Collaborator', 'web');
+        $secretaryRole = Role::findByName('Secretary', 'web');
 
         $users = [
             [
@@ -24,22 +24,22 @@ class UserSeeder extends Seeder
                 'role' => $adminRole,
             ],
             [
-                'email' => 'architecte@cabinet.ma',
+                'email' => 'architect@cabinet.ma',
                 'first_name' => 'Karim',
                 'last_name' => 'El Hassani',
                 'role' => $architectRole,
             ],
             [
-                'email' => 'assistante@cabinet.ma',
-                'first_name' => 'Fatima Zahra',
-                'last_name' => 'El Idrissi',
-                'role' => $assistantRole,
-            ],
-            [
-                'email' => 'collaborateur@cabinet.ma',
+                'email' => 'collaborator@cabinet.ma',
                 'first_name' => 'Youssef',
                 'last_name' => 'Amrani',
                 'role' => $collaboratorRole,
+            ],
+            [
+                'email' => 'secretary@cabinet.ma',
+                'first_name' => 'Fatima Zahra',
+                'last_name' => 'El Idrissi',
+                'role' => $secretaryRole,
             ],
         ];
 

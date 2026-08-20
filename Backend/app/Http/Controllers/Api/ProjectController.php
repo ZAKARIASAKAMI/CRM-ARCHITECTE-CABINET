@@ -16,6 +16,11 @@ class ProjectController extends Controller
     {
         $query = Project::with(['client', 'type', 'status', 'manager'])->latest();
 
+        // Collaborator (projects.view_assigned): only see projects they are member of
+        if ($request->user()->hasRole('Collaborator')) {
+            $query->whereHas('members', fn ($q) => $q->where('user_id', $request->user()->id));
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -37,6 +42,9 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request): JsonResponse
     {
+        if (!$request->user()->hasPermissionTo('projects.create')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
         $project = DB::transaction(function () use ($request) {
             $payload = $request->validated();
 
@@ -109,6 +117,9 @@ class ProjectController extends Controller
 
     public function destroy(Project $project): JsonResponse
     {
+        if (!auth()->user()->hasPermissionTo('projects.delete')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
         $project->delete();
 
         return response()->json([

@@ -4,9 +4,19 @@ import { HiX } from "react-icons/hi";
 import Links from "./components/Links";
 
 import SidebarCard from "components/sidebar/componentsrtl/SidebarCard";
-import routes from "routes.js";
+import { allRoutes } from "routes.js";
+import { getStoredUser } from "services/auth";
 
 const Sidebar = ({ open, onClose }) => {
+  const user = getStoredUser();
+  const userRole = user?.roles?.[0]?.name || "";
+
+  const filteredRoutes = allRoutes.filter((route) => {
+    if (route.hideFromSidebar) return false;
+    if (!route.roles) return true;
+    return route.roles.includes(userRole);
+  });
+
   return (
     <div
       className={`sm:none duration-175 linear fixed !z-50 flex min-h-full w-[290px] flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 ${
@@ -29,7 +39,7 @@ const Sidebar = ({ open, onClose }) => {
       {/* Nav item */}
 
       <ul className="mb-auto pt-1">
-        <Links routes={routes} />
+        <Links routes={filteredRoutes} />
       </ul>
     </div>
   );

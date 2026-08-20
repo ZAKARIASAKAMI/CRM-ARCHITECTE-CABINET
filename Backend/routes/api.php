@@ -36,8 +36,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Dashboard (any authenticated user) ────────────────────────────
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
-    // ── User Management — Administrateur only ─────────────────────────
-    Route::middleware('role:Administrateur')->group(function () {
+    // ── User Management — Administrator only ─────────────────────────
+    Route::middleware('role:Administrator')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::apiResource('roles', RoleController::class);
         Route::get('/permissions', [RoleController::class, 'permissions']);
@@ -57,19 +57,36 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('clients', ClientController::class);
     });
 
-    // ── Projects — Admin, Architecte (full), Collaborateur (view via policy) ──
-    Route::middleware('permission:projects.view')->group(function () {
+    // ── Projects — Admin, Architecte (full), Collaborateur (view_assigned) ──
+    Route::middleware('permission:projects.view|projects.view_assigned')->group(function () {
         Route::apiResource('projects', ProjectController::class);
     });
 
-    // ── Tasks — Admin, Architecte (full), Collaborateur (view/edit via policy) ──
-    Route::middleware('permission:tasks.view')->group(function () {
+    // ── Tasks — Admin, Architecte (full), Collaborateur (view_assigned) ──
+    Route::middleware('permission:tasks.view|tasks.view_assigned')->group(function () {
         Route::apiResource('tasks', TaskController::class);
+
+        // ── Task Comments ──
+        Route::get('/tasks/{task}/comments', [App\Http\Controllers\Api\TaskCommentController::class, 'index']);
+        Route::post('/tasks/{task}/comments', [App\Http\Controllers\Api\TaskCommentController::class, 'store']);
+        Route::delete('/tasks/{task}/comments/{comment}', [App\Http\Controllers\Api\TaskCommentController::class, 'destroy']);
+
+        // ── Task Checklist ──
+        Route::get('/tasks/{task}/checklist', [App\Http\Controllers\Api\TaskChecklistController::class, 'index']);
+        Route::post('/tasks/{task}/checklist', [App\Http\Controllers\Api\TaskChecklistController::class, 'store']);
+        Route::patch('/tasks/{task}/checklist/{item}/toggle', [App\Http\Controllers\Api\TaskChecklistController::class, 'toggle']);
+        Route::delete('/tasks/{task}/checklist/{item}', [App\Http\Controllers\Api\TaskChecklistController::class, 'destroy']);
+
+        // ── Task Attachments ──
+        Route::get('/tasks/{task}/attachments', [App\Http\Controllers\Api\TaskAttachmentController::class, 'index']);
+        Route::post('/tasks/{task}/attachments', [App\Http\Controllers\Api\TaskAttachmentController::class, 'store']);
+        Route::delete('/tasks/{task}/attachments/{attachment}', [App\Http\Controllers\Api\TaskAttachmentController::class, 'destroy']);
     });
 
     // ── Documents — all roles (policy handles membership checks) ──────
     Route::middleware('permission:documents.view')->group(function () {
         Route::apiResource('documents', DocumentController::class);
+        Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
         Route::apiResource('folders', FolderController::class)->only(['index', 'store', 'destroy']);
     });
 
