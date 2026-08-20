@@ -10,9 +10,9 @@ class CheckPermission
 {
     public function handle(Request $request, Closure $next, string $permission): Response
     {
-        if (! $request->user() || ! $request->user()->hasPermission($permission)) {
+        if (! $request->user() || ! $request->user()->hasPermissionTo($permission)) {
             return response()->json([
-                'message' => "Accès non autorisé. Permission requise: {$permission}"
+                'message' => "Accès non autorisé. Permission requise: {$permission}",
             ], 403);
         }
 

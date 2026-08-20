@@ -15,6 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => null);
+
+        // Register Spatie permission middleware aliases
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AuthenticationException $e, Request $request) {
@@ -22,6 +29,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'message' => 'Non authentifié. Token invalide ou manquant.',
                 ], 401);
+            }
+        });
+
+        // Render Spatie 403 as JSON for API requests
+        $exceptions->render(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Accès non autorisé. Vous n\'avez pas les permissions nécessaires.',
+                ], 403);
             }
         });
     })->create();

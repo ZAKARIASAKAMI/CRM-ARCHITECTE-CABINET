@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,6 +13,7 @@ class RoleController extends Controller
     public function index(): JsonResponse
     {
         $roles = Role::withCount('users')->withCount('permissions')->latest()->get();
+
         return response()->json($roles);
     }
 
@@ -27,12 +28,12 @@ class RoleController extends Controller
 
         $role = Role::create([
             'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
             'guard_name' => 'web',
+            'description' => $validated['description'] ?? null,
         ]);
 
-        if (!empty($validated['permissions'])) {
-            $role->permissions()->sync($validated['permissions']);
+        if (! empty($validated['permissions'])) {
+            $role->syncPermissions(Permission::whereIn('id', $validated['permissions'])->get());
         }
 
         return response()->json([
@@ -61,7 +62,9 @@ class RoleController extends Controller
         ]);
 
         if (array_key_exists('permissions', $validated)) {
-            $role->permissions()->sync($validated['permissions'] ?? []);
+            $role->syncPermissions(
+                Permission::whereIn('id', $validated['permissions'] ?? [])->get()
+            );
         }
 
         return response()->json([
@@ -78,7 +81,7 @@ class RoleController extends Controller
             ], 422);
         }
 
-        $role->permissions()->detach();
+        $role->syncPermissions([]);
         $role->delete();
 
         return response()->json(['message' => 'Rôle supprimé avec succès']);
@@ -87,6 +90,7 @@ class RoleController extends Controller
     public function permissions(): JsonResponse
     {
         $permissions = Permission::orderBy('module')->orderBy('name')->get();
+
         return response()->json($permissions);
     }
 }

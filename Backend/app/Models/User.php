@@ -3,14 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     protected $fillable = [
         'first_name',
@@ -41,60 +42,52 @@ class User extends Authenticatable
 
     // --- Relations ---
 
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'role_user');
-    }
-
-    public function managedProjects()
+    public function managedProjects(): BelongsToMany
     {
         return $this->hasMany(Project::class, 'manager_user_id');
     }
 
-    public function projects()
+    public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class, 'project_members')
-                    ->withPivot('project_role', 'is_manager', 'assigned_at', 'ended_at')
-                    ->withTimestamps();
+            ->withPivot('project_role', 'is_manager', 'assigned_at', 'ended_at')
+            ->withTimestamps();
     }
 
-    public function assignedTasks()
+    public function assignedTasks(): BelongsToMany
     {
         return $this->hasMany(Task::class, 'assigned_to');
     }
 
-    public function tasks()
+    public function tasks(): BelongsToMany
     {
         return $this->belongsToMany(Task::class, 'task_members');
     }
 
-    public function assignedProspects()
+    public function assignedProspects(): BelongsToMany
     {
         return $this->hasMany(Prospect::class, 'assigned_user_id');
     }
 
-    public function events()
+    public function events(): BelongsToMany
     {
         return $this->belongsToMany(Event::class, 'event_participants')
-                    ->withPivot('attendance_status')
-                    ->withTimestamps();
+            ->withPivot('attendance_status')
+            ->withTimestamps();
     }
 
-    public function uploadedDocuments()
+    public function uploadedDocuments(): BelongsToMany
     {
         return $this->hasMany(Document::class, 'uploaded_by');
     }
 
-    public function activityLogs()
+    public function activityLogs(): BelongsToMany
     {
         return $this->hasMany(ActivityLog::class, 'user_id');
     }
 
- 
-public function hasPermission(string $permissionName): bool
-{
-    return $this->roles()->whereHas('permissions', function ($query) use ($permissionName) {
-        $query->where('name', $permissionName);
-    })->exists();
-}
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
 }

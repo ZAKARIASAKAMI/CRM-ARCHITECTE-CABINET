@@ -2,24 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
-    protected $fillable = [
-       'name',
-         'description',
-         'guard_name' // why is this here?
-    ];
-public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'role_user');
-    }
+    use HasFactory;
 
-    public function permissions(): BelongsToMany
+    protected $fillable = [
+        'name',
+        'guard_name',
+        'description',
+    ];
+
+    public function users(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class, 'permission_role');
+        return $this->belongsToMany(User::class, 'model_has_roles', 'role_id', 'model_id');
     }
 }
-
