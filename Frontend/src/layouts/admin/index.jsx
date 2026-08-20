@@ -6,18 +6,19 @@ import Footer from "components/footer/Footer";
 import { allRoutes } from "routes.js";
 import { getStoredUser } from "services/auth";
 
-const user = getStoredUser();
-const userRole = user?.roles?.[0]?.name || "";
-
-const routes = allRoutes.filter((r) => {
-  if (r.hideFromSidebar || r.path === "logout") return false;
-  if (!r.roles) return true;
-  return r.roles.includes(userRole);
-});
-
 export default function Admin(props) {
   const { ...rest } = props;
   const location = useLocation();
+
+  const user = getStoredUser();
+  const userRole = user?.roles?.[0]?.name || "";
+
+  const routes = allRoutes.filter((r) => {
+    if (r.hideFromSidebar || r.path === "logout") return false;
+    if (!r.roles) return true;
+    return r.roles.includes(userRole);
+  });
+
   const [open, setOpen] = React.useState(true);
   const [currentRoute, setCurrentRoute] = React.useState("Main Dashboard");
 

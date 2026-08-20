@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { eventsService } from "services/api";
 import Card from "components/card";
-import { MdEvent, MdAdd, MdDelete, MdLocationOn, MdAccessTime } from "react-icons/md";
+import { MdEvent, MdAdd, MdDelete, MdEdit, MdLocationOn, MdAccessTime } from "react-icons/md";
 
 export default function PlanningPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formError, setFormError] = useState("");
   const [form, setForm] = useState({
     title: "",
     event_type: "Rendez-vous client",
@@ -35,18 +37,44 @@ export default function PlanningPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
     try {
-      await eventsService.create({
-        ...form,
-        project_id: form.project_id || null,
-        client_id: form.client_id || null,
-      });
+      if (editingId) {
+        await eventsService.update(editingId, {
+          ...form,
+          project_id: form.project_id || null,
+          client_id: form.client_id || null,
+        });
+      } else {
+        await eventsService.create({
+          ...form,
+          project_id: form.project_id || null,
+          client_id: form.client_id || null,
+        });
+      }
       setModalOpen(false);
+      setEditingId(null);
       setForm({ title: "", event_type: "Rendez-vous client", start_at: "", location: "", project_id: "", client_id: "", description: "" });
+      setFormError("");
       loadEvents();
     } catch (e) {
-      console.error("Error creating event", e);
+      const msg = e.response?.data?.message || "Erreur lors de l'enregistrement";
+      setFormError(msg);
     }
+  };
+
+  const handleEdit = (ev) => {
+    setEditingId(ev.id);
+    setForm({
+      title: ev.title || "",
+      event_type: ev.event_type || "Rendez-vous client",
+      start_at: ev.start_at ? ev.start_at.slice(0, 16) : "",
+      location: ev.location || "",
+      project_id: ev.project_id || "",
+      client_id: ev.client_id || "",
+      description: ev.description || "",
+    });
+    setModalOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -72,7 +100,7 @@ export default function PlanningPage() {
           </p>
         </div>
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={() => { setEditingId(null); setForm({ title: "", event_type: "Rendez-vous client", start_at: "", location: "", project_id: "", client_id: "", description: "" }); setFormError(""); setModalOpen(true); }}
           className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 transition duration-200"
         >
           <MdAdd className="h-5 w-5" />
@@ -115,12 +143,20 @@ export default function PlanningPage() {
                     </div>
                   </div>
                 </div>
+                <div className="flex gap-1">
+                <button
+                  onClick={() => handleEdit(ev)}
+                  className="rounded-lg p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-navy-700"
+                >
+                  <MdEdit className="h-5 w-5" />
+                </button>
                 <button
                   onClick={() => handleDelete(ev.id)}
                   className="rounded-lg p-2 text-red-500 hover:bg-red-50 dark:hover:bg-navy-700"
                 >
                   <MdDelete className="h-5 w-5" />
                 </button>
+                </div>
               </div>
             ))}
           </div>
@@ -132,7 +168,7 @@ export default function PlanningPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-navy-800">
             <h3 className="mb-4 text-xl font-bold text-navy-700 dark:text-white">
-              Nouvel Événement
+              {editingId ? "Modifier l'Événement" : "Nouvel Événement"}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -183,9 +219,12 @@ export default function PlanningPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
+                {formError && (
+                  <p className="mr-auto text-sm text-red-500">{formError}</p>
+                )}
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
+                  onClick={() => { setModalOpen(false); setEditingId(null); setFormError(""); }}
                   className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-navy-600 dark:text-gray-300"
                 >
                   Annuler
@@ -194,7 +233,7 @@ export default function PlanningPage() {
                   type="submit"
                   className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
                 >
-                  Planifier
+                  {editingId ? "Enregistrer" : "Planifier"}
                 </button>
               </div>
             </form>

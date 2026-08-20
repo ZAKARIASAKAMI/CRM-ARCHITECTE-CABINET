@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Event;
+use App\Models\Document;
 use Illuminate\Http\JsonResponse;
 
 class DashboardController extends Controller
@@ -70,6 +71,8 @@ class DashboardController extends Controller
             ->with(['project', 'client', 'creator'])
             ->get();
 
+        $totalDocuments = Document::count();
+
         $recentProjects = Project::with(['client', 'status', 'manager'])
             ->latest()
             ->take(5)
@@ -102,6 +105,7 @@ class DashboardController extends Controller
             'projects_in_progress' => $projectsInProgress,
             'upcoming_events' => $upcomingEvents,
             'recent_prospects' => $recentProspects,
+            'documents_count' => $totalDocuments,
         ]);
     }
 }
