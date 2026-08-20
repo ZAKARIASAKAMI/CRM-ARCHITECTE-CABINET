@@ -9,6 +9,8 @@ export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const debounceRef = useRef(null);
   const [form, setForm] = useState({
     client_type: "individual",
@@ -49,6 +51,8 @@ export default function ClientsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
+    setSubmitting(true);
     try {
       if (editingId) {
         await api.put(`/clients/${editingId}`, form);
@@ -57,6 +61,7 @@ export default function ClientsPage() {
       }
       setModalOpen(false);
       setEditingId(null);
+      setFormError("");
       setForm({
         client_type: "individual",
         first_name: "",
@@ -73,7 +78,13 @@ export default function ClientsPage() {
       });
       loadClients(search);
     } catch (e) {
-      console.error("Error saving client", e);
+      const msg =
+        e.response?.data?.errors
+          ? Object.values(e.response.data.errors).flat().join(", ")
+          : e.response?.data?.message || "Erreur lors de l'enregistrement";
+      setFormError(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -308,6 +319,7 @@ export default function ClientsPage() {
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Téléphone</label>
                   <input
                     type="text"
+                    required
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
@@ -348,18 +360,23 @@ export default function ClientsPage() {
               )}
 
               <div className="flex justify-end gap-3 pt-4">
+                {formError && (
+                  <p className="mr-auto text-sm text-red-500">{formError}</p>
+                )}
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
+                  disabled={submitting}
                   className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-navy-600 dark:text-gray-300"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+                  disabled={submitting}
+                  className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
                 >
-                  {editingId ? "Enregistrer" : "Créer"}
+                  {submitting ? "Enregistrement..." : editingId ? "Enregistrer" : "Créer"}
                 </button>
               </div>
             </form>

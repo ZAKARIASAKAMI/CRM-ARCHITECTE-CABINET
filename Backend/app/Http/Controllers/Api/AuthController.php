@@ -80,6 +80,8 @@ class AuthController extends Controller
                 'email_verified_at' => now(),
             ]);
 
+            $user->assignRole('Collaborateur');
+
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([

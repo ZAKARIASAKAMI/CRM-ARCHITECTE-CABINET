@@ -36,6 +36,8 @@ export default function ProspectsPage() {
   });
   const [converting, setConverting] = useState(false);
   const [conversionError, setConversionError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const debounceRef = useRef(null);
 
   const loadProspects = async (searchTerm, statusId) => {
@@ -68,6 +70,8 @@ export default function ProspectsPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setFormError("");
+    setSubmitting(true);
 
     try {
       const payload = {
@@ -86,9 +90,16 @@ export default function ProspectsPage() {
       setForm(defaultForm);
       setEditingId(null);
       setModalOpen(false);
+      setFormError("");
       loadProspects(search, statusFilter);
     } catch (error) {
-      console.error("Failed to save prospect", error);
+      const msg =
+        error.response?.data?.errors
+          ? Object.values(error.response.data.errors).flat().join(", ")
+          : error.response?.data?.message || "Erreur lors de l'enregistrement";
+      setFormError(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -307,7 +318,8 @@ export default function ProspectsPage() {
             <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
               <input
                 className="rounded-lg border p-3"
-                placeholder="Prénom"
+                placeholder="Prénom *"
+                required
                 value={form.first_name}
                 onChange={(e) =>
                   setForm({ ...form, first_name: e.target.value })
@@ -315,7 +327,8 @@ export default function ProspectsPage() {
               />
               <input
                 className="rounded-lg border p-3"
-                placeholder="Nom"
+                placeholder="Nom *"
+                required
                 value={form.last_name}
                 onChange={(e) =>
                   setForm({ ...form, last_name: e.target.value })
@@ -338,18 +351,20 @@ export default function ProspectsPage() {
               />
               <input
                 className="rounded-lg border p-3"
-                placeholder="Téléphone"
+                placeholder="Téléphone *"
+                required
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
               />
               <select
                 className="rounded-lg border p-3"
                 value={form.status_id}
+                required
                 onChange={(e) =>
                   setForm({ ...form, status_id: e.target.value })
                 }
               >
-                <option value="">Statut</option>
+                <option value="">Statut *</option>
                 {statuses.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -405,18 +420,23 @@ export default function ProspectsPage() {
               />
 
               <div className="flex justify-end gap-3 md:col-span-2">
+                {formError && (
+                  <p className="mr-auto text-sm text-red-500">{formError}</p>
+                )}
                 <button
                   type="button"
                   className="rounded-lg border px-4 py-2"
                   onClick={() => setModalOpen(false)}
+                  disabled={submitting}
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-brand-500 px-4 py-2 text-white"
+                  className="rounded-lg bg-brand-500 px-4 py-2 text-white disabled:opacity-50"
+                  disabled={submitting}
                 >
-                  {editingId ? "Enregistrer" : "Créer"}
+                  {submitting ? "Enregistrement..." : editingId ? "Enregistrer" : "Créer"}
                 </button>
               </div>
             </form>

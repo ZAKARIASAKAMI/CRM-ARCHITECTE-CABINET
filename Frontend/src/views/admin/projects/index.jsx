@@ -34,6 +34,8 @@ export default function ProjectsPage() {
     priority: "normal",
     description: "",
   });
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const loadProjects = async (searchTerm) => {
     setLoading(true);
@@ -82,6 +84,8 @@ export default function ProjectsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
+    setSubmitting(true);
     try {
       const payload = {
         ...form,
@@ -102,11 +106,15 @@ export default function ProjectsPage() {
       }
       setModalOpen(false);
       setEditingId(null);
+      setFormError("");
       loadProjects(search);
     } catch (e) {
-      console.error("Error saving project", e);
-      const msg = e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(", ") : (e.response?.data?.message || "Erreur lors de l'enregistrement");
-      alert(msg);
+      const msg = e.response?.data?.errors
+        ? Object.values(e.response.data.errors).flat().join(", ")
+        : (e.response?.data?.message || "Erreur lors de l'enregistrement");
+      setFormError(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -349,6 +357,7 @@ export default function ProjectsPage() {
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Client</label>
                   <select
                     value={form.client_id}
+                    required
                     onChange={(e) => setForm({ ...form, client_id: e.target.value })}
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
                   >
@@ -385,9 +394,11 @@ export default function ProjectsPage() {
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Type de projet</label>
                   <select
                     value={form.project_type_id}
+                    required
                     onChange={(e) => setForm({ ...form, project_type_id: e.target.value })}
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
                   >
+                    <option value="">Sélectionnez un type</option>
                     {types.map((t) => (
                       <option key={t.id} value={t.id}>{t.name}</option>
                     ))}
@@ -397,9 +408,11 @@ export default function ProjectsPage() {
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Statut du projet</label>
                   <select
                     value={form.project_status_id}
+                    required
                     onChange={(e) => setForm({ ...form, project_status_id: e.target.value })}
                     className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
                   >
+                    <option value="">Sélectionnez un statut</option>
                     {statuses.map((s) => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
@@ -437,19 +450,59 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Adresse</label>
+                  <input
+                    type="text"
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Priorité</label>
+                  <select
+                    value={form.priority}
+                    onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
+                  >
+                    <option value="low">Basse</option>
+                    <option value="normal">Normale</option>
+                    <option value="high">Haute</option>
+                    <option value="urgent">Urgente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300">Description</label>
+                <textarea
+                  rows={3}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-gray-200 p-2.5 text-sm dark:border-navy-600 dark:bg-navy-700 dark:text-white"
+                />
+              </div>
+
               <div className="flex justify-end gap-3 pt-4">
+                {formError && (
+                  <p className="mr-auto text-sm text-red-500">{formError}</p>
+                )}
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
+                  disabled={submitting}
                   className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-navy-600 dark:text-gray-300"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+                  disabled={submitting}
+                  className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
                 >
-                  {editingId ? "Enregistrer" : "Créer"}
+                  {submitting ? "Enregistrement..." : editingId ? "Enregistrer" : "Créer"}
                 </button>
               </div>
             </form>

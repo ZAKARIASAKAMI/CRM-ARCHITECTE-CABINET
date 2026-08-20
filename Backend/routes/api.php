@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ProspectController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\UserController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 /*

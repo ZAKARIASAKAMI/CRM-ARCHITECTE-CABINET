@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -42,7 +43,7 @@ class User extends Authenticatable
 
     // --- Relations ---
 
-    public function managedProjects(): BelongsToMany
+    public function managedProjects(): HasMany
     {
         return $this->hasMany(Project::class, 'manager_user_id');
     }
@@ -54,7 +55,7 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function assignedTasks(): BelongsToMany
+    public function assignedTasks(): HasMany
     {
         return $this->hasMany(Task::class, 'assigned_to');
     }
@@ -64,7 +65,7 @@ class User extends Authenticatable
         return $this->belongsToMany(Task::class, 'task_members');
     }
 
-    public function assignedProspects(): BelongsToMany
+    public function assignedProspects(): HasMany
     {
         return $this->hasMany(Prospect::class, 'assigned_user_id');
     }
@@ -76,12 +77,12 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function uploadedDocuments(): BelongsToMany
+    public function uploadedDocuments(): HasMany
     {
         return $this->hasMany(Document::class, 'uploaded_by');
     }
 
-    public function activityLogs(): BelongsToMany
+    public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class, 'user_id');
     }
