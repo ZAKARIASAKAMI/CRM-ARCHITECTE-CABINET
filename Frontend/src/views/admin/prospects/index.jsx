@@ -189,10 +189,10 @@ export default function ProspectsPage() {
 
   return (
     <div className="space-y-6 p-4">
-      <div className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-md md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-2xl bg-gray-500 p-5 shadow-md md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-navy-700">Prospects</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-black">
             Pipeline des prospects et conversion client
           </p>
         </div>
