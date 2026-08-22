@@ -1,11 +1,12 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import RtlLayout from "layouts/rtl";
 import AdminLayout from "layouts/admin";
 import AuthLayout from "layouts/auth";
 import ProtectedRoute from "components/ProtectedRoute";
 import { isAuthenticated } from "services/auth";
+
+const RtlLayout = lazy(() => import("layouts/rtl"));
 
 const RootRedirect = () => {
   return (
@@ -18,19 +19,21 @@ const RootRedirect = () => {
 
 const App = () => {
   return (
-    <Routes>
-      <Route path="auth/*" element={<AuthLayout />} />
-      <Route
-        path="admin/*"
-        element={
-          <ProtectedRoute>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="rtl/*" element={<RtlLayout />} />
-      <Route path="/" element={<RootRedirect />} />
-    </Routes>
+    <Suspense fallback={null}>
+      <Routes>
+        <Route path="auth/*" element={<AuthLayout />} />
+        <Route
+          path="admin/*"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="rtl/*" element={<RtlLayout />} />
+        <Route path="/" element={<RootRedirect />} />
+      </Routes>
+    </Suspense>
   );
 };
 

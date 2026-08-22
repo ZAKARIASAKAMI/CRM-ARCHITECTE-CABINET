@@ -1,19 +1,19 @@
-import React from "react";
+import React, { lazy } from "react";
 
-// Admin Imports
-import MainDashboard from "views/admin/default";
-import ProspectsPage from "views/admin/prospects";
-import ClientsPage from "views/admin/clients";
-import ProjectsPage from "views/admin/projects";
-import TasksPage from "views/admin/tasks";
-import DocumentsPage from "views/admin/documents";
-import PlanningPage from "views/admin/planning";
+// Admin Imports (lazy-loaded for faster startup / code splitting)
+const MainDashboard = lazy(() => import("views/admin/default"));
+const ProspectsPage = lazy(() => import("views/admin/prospects"));
+const ClientsPage = lazy(() => import("views/admin/clients"));
+const ProjectsPage = lazy(() => import("views/admin/projects"));
+const TasksPage = lazy(() => import("views/admin/tasks"));
+const DocumentsPage = lazy(() => import("views/admin/documents"));
+const PlanningPage = lazy(() => import("views/admin/planning"));
 
-import UsersPage from "views/admin/users";
+const UsersPage = lazy(() => import("views/admin/users"));
 
 // Auth Imports
-import SignIn from "views/auth/SignIn";
-import SignUp from "views/auth/SignUp";
+const SignIn = lazy(() => import("views/auth/SignIn"));
+const SignUp = lazy(() => import("views/auth/SignUp"));
 
 // Icon Imports
 import {
