@@ -16,8 +16,7 @@ const Navbar = (props) => {
   const dropdownRef = useRef(null);
   const user = getStoredUser();
 
-  const displayBrandText =
-    brandText === "Prospects" ? "Tableau de Bord" : brandText;
+  const displayBrandText = brandText;
 
   const userInitials = user
     ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase()

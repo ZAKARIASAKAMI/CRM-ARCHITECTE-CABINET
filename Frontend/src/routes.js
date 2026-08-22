@@ -58,7 +58,7 @@ const allRoutes = [
     roles: ["Administrator", "Secretary", "Architect"],
   },
   {
-    name: "Projets",
+    name: "Projects",
     layout: "/admin",
     path: "projects",
     icon: <MdArchitecture className="h-6 w-6" />,
@@ -79,7 +79,7 @@ const allRoutes = [
     path: "documents",
     icon: <MdFolder className="h-6 w-6" />,
     component: <DocumentsPage />,
-    roles: ["Administrator", "Architect", "Collaborator", "Secretary"],
+    roles: ["Administrator", "Architect", "Secretary"],
   },
   {
     name: "Planning",

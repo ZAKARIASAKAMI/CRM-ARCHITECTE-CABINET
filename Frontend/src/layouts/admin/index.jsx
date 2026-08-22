@@ -20,7 +20,7 @@ export default function Admin(props) {
   });
 
   const [open, setOpen] = React.useState(true);
-  const [currentRoute, setCurrentRoute] = React.useState("Main Dashboard");
+  const [currentRoute, setCurrentRoute] = React.useState("Tableau de Bord");
 
   React.useEffect(() => {
     window.addEventListener("resize", () =>
@@ -32,7 +32,7 @@ export default function Admin(props) {
   }, [location.pathname]);
 
   const getActiveRoute = (routes) => {
-    let activeRoute = "Main Dashboard";
+    let activeRoute = "Tableau de Bord";
     for (let i = 0; i < routes.length; i++) {
       if (
         window.location.href.indexOf(

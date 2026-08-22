@@ -117,7 +117,7 @@ class RoleAndPermissionSeeder extends Seeder
         // --- Collaborator: Restricted to assigned records only ---
         $collaborator = Role::firstOrCreate(
             ['name' => 'Collaborator', 'guard_name' => 'web'],
-            ['description' => 'View assigned projects and tasks only. Upload documents and comment on own records.']
+            ['description' => 'View assigned projects and tasks only. Comment on own records.']
         );
 
         // --- Secretary: CRM and administrative scope ---
@@ -181,9 +181,6 @@ class RoleAndPermissionSeeder extends Seeder
             'tasks.update_progress',
             'tasks.log_time',
             'tasks.check_items',
-            // Documents (upload for assigned tasks)
-            'documents.view',
-            'documents.upload',
             // Comments
             'comments.view',
             'comments.create',

@@ -8,7 +8,6 @@ export default function DocumentsPage() {
   const user = getStoredUser();
   const userRole = user?.roles?.[0]?.name;
   const isSecretary = userRole === "Secretary";
-  const isCollaborator = userRole === "Collaborator";
   const canDelete = !isSecretary;
   const canEdit = userRole === "Administrator" || userRole === "Architect";
   const [documents, setDocuments] = useState([]);

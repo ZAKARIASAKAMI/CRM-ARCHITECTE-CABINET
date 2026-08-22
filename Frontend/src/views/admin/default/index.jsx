@@ -41,7 +41,7 @@ const Dashboard = () => {
   const showClients = userRole !== "Collaborator";
   const showProspects = ["Administrator", "Secretary"].includes(userRole);
   const showEvents = ["Administrator", "Architect", "Secretary"].includes(userRole);
-  const showDocs = true;
+  const showDocs = userRole !== "Collaborator";
   const isSecretary = userRole === "Secretary";
 
   return (

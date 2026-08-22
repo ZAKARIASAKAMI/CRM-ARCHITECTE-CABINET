@@ -239,7 +239,7 @@ export default function ProjectsPage() {
 
       <div className="w-full">
         <input
-          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-[#111c44cc] dark:text-white"
           placeholder="Recherche projet..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -261,7 +261,6 @@ export default function ProjectsPage() {
                   <th className="px-4 py-3">Type & Statut</th>
                   <th className="px-4 py-3">Architecte Responsable</th>
                   <th className="px-4 py-3">Surfaces / Budget</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 border-t border-gray-100 dark:divide-navy-700 dark:border-navy-700">
