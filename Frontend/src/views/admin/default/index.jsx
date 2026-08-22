@@ -157,12 +157,16 @@ const Dashboard = () => {
                 <div key={p.id} className="rounded-xl border border-gray-100 p-3 dark:border-navy-700">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-semibold text-navy-700 dark:text-white">{p.name}</p>
-                      <p className="text-xs text-gray-500">{p.client || "-"} • {p.manager || "-"}</p>
+                      <p className="font-semibold text-navy-700 dark:text-green-400">{p.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-white">
+                        {p.client || "-"} • {p.manager || "-"}
+                      </p>
                     </div>
-                    <span className="text-sm font-bold text-purple-600">{p.progress || 0}%</span>
+                    <span className="text-sm font-bold text-purple-600 dark:text-white">
+                      {p.progress || 0}%
+                    </span>
                   </div>
-                  <div className="mt-2 h-2 w-full rounded-full bg-gray-200 dark:bg-navy-600">
+                  <div className="mt-2 h-2 w-full rounded-full bg-gray-200 dark:bg-navy-600 dark:text-white">
                     <div
                       className="h-2 rounded-full bg-purple-500 transition-all"
                       style={{ width: `${p.progress || 0}%` }}
@@ -220,13 +224,13 @@ const Dashboard = () => {
             <p className="text-sm text-gray-500">Aucun projet pour le moment.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-                <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-navy-800 dark:text-gray-300">
+              <table className="w-full text-left text-sm text-gray-500 dark:text-white">
+                <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-navy-800 text-white">
                   <tr>
-                    <th className="px-4 py-3">Réf / Nom</th>
-                    <th className="px-4 py-3">Client</th>
-                    <th className="px-4 py-3">Statut</th>
-                    <th className="px-4 py-3">Ville</th>
+                    <th className="px-4 py-3 dark:text-white">Réf / Nom</th>
+                    <th className="px-4 py-3 dark:text-white">Client</th>
+                    <th className="px-4 py-3 dark:text-white">Statut</th>
+                    <th className="px-4 py-3 dark:text-white">Ville</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-navy-700">

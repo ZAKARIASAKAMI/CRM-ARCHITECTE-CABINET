@@ -160,7 +160,7 @@ export default function ClientsPage() {
 
       <div className="w-full">
         <input
-          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500  focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:bg-[#111c44cc] dark:text-white"
           placeholder="Recherche client..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}

@@ -189,10 +189,10 @@ export default function ProspectsPage() {
 
   return (
     <div className="space-y-6 p-4">
-      <div className="flex flex-col gap-4 rounded-2xl bg-gray-500 p-5 shadow-md md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-2xl bg-white dark:bg-[#111c44cc] p-5 shadow-md md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-navy-700">Prospects</h2>
-          <p className="text-sm text-black">
+          <h2 className="text-2xl font-bold text-navy-700 dark:text-white">Prospects</h2>
+          <p className="text-sm text-black dark:text-white/80">
             Pipeline des prospects et conversion client
           </p>
         </div>
@@ -208,17 +208,17 @@ export default function ProspectsPage() {
         </button>
       </div>
 
-      <div className="space-y-4 rounded-2xl bg-white p-4 shadow-md">
+      <div className="space-y-4 rounded-2xl  p-4 shadow-md dark:bg-[#111c44cc] bg-white">
         <input
-          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-700 placeholder-gray-400 dark:bg-[#111c44cc] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           placeholder="Recherche..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 dark:bg-[#111c44cc] text-white">
           <select
-            className="rounded-xl border border-gray-200 bg-white p-3"
+            className="rounded-xl border-white bg-white p-3 dark:bg-[#111c44cc] border white text:white "
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -230,15 +230,15 @@ export default function ProspectsPage() {
             ))}
           </select>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-3 text-sm font-medium text-gray-700">
+          <div className="rounded-xl border dark:bg-[#111c44cc] border-gray-200 bg-white p-3 text-sm font-medium text-gray-700">
             Conversion : {totalWon}
           </div>
         </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl bg-white shadow-md">
-        <table className="min-w-full text-left">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+        <table className="min-w-full text-left dark:bg-[#111c44cc]">
+          <thead className=" text-xs uppercase text-gray-500 dark:bg-[#111c44cc] text-white">
             <tr>
               <th className="p-3">Nom</th>
               <th className="p-3">Email</th>
@@ -257,32 +257,32 @@ export default function ProspectsPage() {
               </tr>
             ) : prospects.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-gray-500">
+                <td colSpan={6} className="p-6 text-center text-gray-500 dark:text-white">
                   Aucun prospect trouvé.
                 </td>
               </tr>
             ) : (
               prospects.map((prospect) => (
-                <tr key={prospect.id} className="border-t border-gray-100">
-                  <td className="p-3">
-                    <div className="font-semibold text-navy-700">
+                <tr key={prospect.id} className="border-t border-gray-100 dark:text-white">
+                  <td className="p-3 dark:text-white">
+                    <div className="font-semibold text-navy-700 dark:text-green-400">
                       {prospect.company_name ||
                         `${prospect.first_name || ""} ${
                           prospect.last_name || ""
                         }`.trim()}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 dark:text-white">
                       {prospect.client_type}
                     </div>
                   </td>
-                  <td className="p-3">{prospect.email || "-"}</td>
-                  <td className="p-3">{prospect.phone || "-"}</td>
-                  <td className="p-3">{prospect.status?.name || "-"}</td>
-                  <td className="p-3">{prospect.source?.name || "-"}</td>
+                  <td className="p-3 dark:text-white">{prospect.email || "-"}</td>
+                  <td className="p-3 dark:text-white">{prospect.phone || "-"}</td>
+                  <td className="p-3 dark:text-white">{prospect.status?.name || "-"}</td>
+                  <td className="p-3 dark:text-white">{prospect.source?.name || "-"}</td>
                   <td className="p-3">
                     <div className="flex gap-2">
                       <button
-                        className="rounded-lg bg-gray-100 px-2 py-1 text-sm"
+                        className="rounded-lg bg-gray-100 px-2 py-1 text-sm dark:bg-[#111c44cc]"
                         onClick={() => handleEdit(prospect)}
                       >
                         Modifier

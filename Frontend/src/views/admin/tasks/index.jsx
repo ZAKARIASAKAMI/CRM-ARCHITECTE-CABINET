@@ -664,7 +664,7 @@ export default function TasksPage() {
                             {c.user ? `${(c.user.first_name || "")[0] || ""}${(c.user.last_name || "")[0] || ""}`.toUpperCase() : "?"}
                           </div>
                           <div>
-                            <p className="text-xs font-semibold text-navy-700 dark:text-white">
+                            <p className="text-xs font-semibold text-navy-700 dark:text-green-400">
                               {c.user ? `${c.user.first_name} ${c.user.last_name}` : "Utilisateur"}
                             </p>
                             <p className="text-[10px] text-gray-400">{new Date(c.created_at).toLocaleString()}</p>
