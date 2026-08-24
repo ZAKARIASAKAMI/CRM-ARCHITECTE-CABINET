@@ -318,7 +318,7 @@ export default function TasksPage() {
       </div>
 
       <div className="w-full">
-        <input className="w-full rounded-xl border border-gray-200 dark:text-black p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+        <input className="w-full rounded-xl border border-gray-200 dark:text-black p-3 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-navy-600 dark:bg-navy-700 dark:placeholder-gray-500" type="text"
           placeholder="Recherche tâche..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
