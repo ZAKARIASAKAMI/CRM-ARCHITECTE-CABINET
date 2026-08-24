@@ -225,7 +225,7 @@ const Dashboard = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-gray-500 dark:text-white">
-                <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-navy-800 text-white">
+                <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-navy-800 text-black">
                   <tr>
                     <th className="px-4 py-3 dark:text-white">Réf / Nom</th>
                     <th className="px-4 py-3 dark:text-white">Client</th>
